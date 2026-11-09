@@ -22,7 +22,7 @@ Every `wrangler` command below runs from the repository root with
 | 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              |
 | 2. R2, D1, KV and the archive lock   | done                                         |
 | 3. KV values                         | done (all five keys, 2026-10-26)             |
-| 4. GitHub secrets, variable, env.    | to redo on the new public repo (ADR 0046)    |
+| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     |
 | 5. Required secrets, first deploy    | done                                         |
 | 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   |
 | 7. Admin area                        | done (`admin-staging.brickplace.app`)        |
