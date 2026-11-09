@@ -1,0 +1,119 @@
+{
+  "name": "shield-decay",
+  "description": "Shield layers last 48 h (172800000 ms, the default) from placement: alive 1 ms before, gone exactly at and after. A hammer breaks the newest layer first, and a time logged before the clock counts as the clock.",
+  "config": {
+    "size": 16,
+    "open": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "maxShield": 2
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 0,
+      "y": 0,
+      "shape": 1,
+      "rotation": 0,
+      "color": 9,
+      "at": 0
+    },
+    {
+      "kind": "shield",
+      "x": 0,
+      "y": 0,
+      "at": 0
+    },
+    {
+      "kind": "shield",
+      "x": 1,
+      "y": 0,
+      "at": 0
+    },
+    {
+      "kind": "shield",
+      "x": 1,
+      "y": 1,
+      "at": 0
+    },
+    {
+      "kind": "shield",
+      "x": 0,
+      "y": 0,
+      "at": 3600000
+    },
+    {
+      "kind": "shield",
+      "x": 0,
+      "y": 0,
+      "at": 172799999
+    },
+    {
+      "kind": "hammer",
+      "x": 1,
+      "y": 0,
+      "at": 172799999
+    },
+    {
+      "kind": "shield",
+      "x": 0,
+      "y": 0,
+      "at": 172800000
+    },
+    {
+      "kind": "hammer",
+      "x": 1,
+      "y": 1,
+      "at": 172800000
+    },
+    {
+      "kind": "hammer",
+      "x": 0,
+      "y": 0,
+      "at": 172800001
+    },
+    {
+      "kind": "shield",
+      "x": 1,
+      "y": 0,
+      "at": 5
+    },
+    {
+      "kind": "hammer",
+      "x": 0,
+      "y": 0,
+      "at": 176400001
+    },
+    {
+      "kind": "hammer",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "kind": "hammer",
+      "x": 1,
+      "y": 0,
+      "at": 345600000
+    }
+  ],
+  "expectedOutcomes": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "shield_full",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "empty",
+    "ok"
+  ],
+  "expectedHash": "87e8f39d"
+}

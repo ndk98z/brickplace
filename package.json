@@ -1,0 +1,32 @@
+{
+  "name": "brickplace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A long-running collaborative map game: place bricks, hammer cells, stack shields.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "verify": "biome ci . && turbo run typecheck test build",
+    "check": "biome check --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "types": "turbo run types",
+    "dev": "node tools/dev-vars.mjs && pnpm --filter @brickplace/client build && wrangler d1 migrations apply ACCOUNTS --local -c workers/gateway/wrangler.jsonc && wrangler d1 migrations apply STANDINGS --local -c workers/gateway/wrangler.jsonc && wrangler kv key put team-daily-cells 1000000 --binding MODERATION --local -c workers/gateway/wrangler.jsonc && wrangler dev -c workers/gateway/wrangler.jsonc -c workers/realtime/wrangler.jsonc -c workers/game/wrangler.jsonc",
+    "dev:admin": "node tools/dev-vars.mjs && wrangler d1 migrations apply ADMIN_DB --local --persist-to workers/gateway/.wrangler/state -c workers/admin/wrangler.jsonc && wrangler d1 migrations apply ACCOUNTS --local --persist-to workers/gateway/.wrangler/state -c workers/admin/wrangler.jsonc && wrangler dev -c workers/admin/wrangler.jsonc --port 8788 --persist-to workers/gateway/.wrangler/state",
+    "golden:update": "UPDATE_GOLDEN=1 pnpm --filter @brickplace/golden test",
+    "ci:do-lifecycle": "tsx tools/ci/check-do-lifecycle.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

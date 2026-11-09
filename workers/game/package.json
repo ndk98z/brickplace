@@ -1,0 +1,32 @@
+{
+  "name": "@brickplace/game",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "description": "Game-rule Durable Objects (Stage 0: CanvasDO). Deploying restarts these DOs only.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./alarms": "./src/alarms.ts",
+    "./config": "./src/config.ts",
+    "./journal": "./src/journal.ts",
+    "./push": "./src/push.ts",
+    "./season": "./src/season.ts"
+  },
+  "scripts": {
+    "types": "wrangler types --include-env=false",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@brickplace/core": "workspace:*",
+    "@brickplace/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

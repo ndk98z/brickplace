@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", ":semanticCommits"],
+  "timezone": "Asia/Ho_Chi_Minh",
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "commitBody": "Signed-off-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+  "packageRules": [
+    {
+      "groupName": "cloudflare",
+      "matchPackageNames": ["wrangler", "@cloudflare/**", "miniflare", "workerd"]
+    },
+    { "groupName": "github actions", "matchManagers": ["github-actions"] }
+  ]
+}

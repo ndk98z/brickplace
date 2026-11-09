@@ -1,0 +1,19 @@
+name: Idea or feature
+description: Propose a change to the game or the code.
+labels: [idea]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What do you propose?
+  - type: textarea
+    id: rules
+    attributes:
+      label: Does it change game rules or the wire protocol?
+      description: Rule and protocol changes need an ADR in docs/adr.

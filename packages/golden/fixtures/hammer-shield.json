@@ -1,0 +1,72 @@
+{
+  "name": "hammer-shield",
+  "description": "Shields absorb hammers one layer at a time; a refilled hole must not merge outlines.",
+  "config": {
+    "size": 32,
+    "open": {
+      "x": 8,
+      "y": 8,
+      "w": 16,
+      "h": 16
+    },
+    "maxShield": 2
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 8,
+      "y": 8,
+      "shape": 1,
+      "rotation": 0,
+      "color": 4
+    },
+    {
+      "kind": "shield",
+      "x": 8,
+      "y": 8
+    },
+    {
+      "kind": "shield",
+      "x": 8,
+      "y": 8
+    },
+    {
+      "kind": "shield",
+      "x": 8,
+      "y": 8
+    },
+    {
+      "kind": "hammer",
+      "x": 8,
+      "y": 8
+    },
+    {
+      "kind": "hammer",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "kind": "hammer",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "kind": "brick",
+      "x": 9,
+      "y": 9,
+      "shape": 0,
+      "rotation": 0,
+      "color": 12
+    },
+    {
+      "kind": "brick",
+      "x": 2,
+      "y": 2,
+      "shape": 0,
+      "rotation": 0,
+      "color": 1
+    }
+  ],
+  "expectedOutcomes": ["ok", "ok", "ok", "shield_full", "ok", "ok", "empty", "ok", "out_of_area"],
+  "expectedHash": "6855f80d"
+}

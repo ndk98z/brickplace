@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "worktree": {
+    "baseRef": "head"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm install --frozen-lockfile --prefer-offline)",
+      "Bash(pnpm verify)",
+      "Bash(pnpm check)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm types)",
+      "Bash(pnpm golden:update)",
+      "Bash(pnpm --filter * test)",
+      "Bash(pnpm --filter * typecheck)",
+      "Bash(pnpm --filter * build)",
+      "Bash(pnpm --filter * types)",
+      "Bash(pnpm turbo run *)",
+      "Bash(pnpm exec biome *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm exec vitest *)",
+      "Bash(pnpm tsx tools/*)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)",
+      "Bash(git rev-parse *)",
+      "Bash(git merge-base *)",
+      "Bash(git worktree list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)",
+      "mcp__cloudflare-docs"
+    ],
+    "ask": ["Bash(gh pr create *)", "Bash(gh workflow run *)"],
+    "deny": [
+      "Bash(wrangler deploy *)",
+      "Bash(npx wrangler deploy *)",
+      "Bash(pnpm exec wrangler deploy *)",
+      "Bash(pnpm dlx wrangler *)",
+      "Bash(wrangler secret *)",
+      "Bash(wrangler delete *)",
+      "Bash(wrangler kv key delete *)",
+      "Bash(wrangler kv bulk delete *)",
+      "Bash(wrangler kv namespace delete *)",
+      "Bash(wrangler r2 object delete *)",
+      "Bash(wrangler r2 bucket delete *)",
+      "Bash(wrangler d1 delete *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git filter-repo *)",
+      "Bash(git filter-branch *)",
+      "Bash(git stash clear)",
+      "Bash(git stash drop)",
+      "Bash(git stash drop *)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -r -f *)",
+      "Bash(rm -f -r *)",
+      "Bash(sudo *)",
+      "Bash(killall *)",
+      "Bash(pkill *)",
+      "Bash(chmod -R *)",
+      "Bash(chown *)",
+      "Bash(docker system prune *)",
+      "Bash(docker volume rm *)",
+      "Bash(docker volume prune *)",
+      "Bash(docker image prune *)",
+      "Bash(docker rm *)",
+      "Bash(docker rmi *)",
+      "Bash(brew uninstall *)",
+      "Bash(brew remove *)",
+      "Bash(npm uninstall -g *)",
+      "Bash(pnpm remove -g *)",
+      "Read(./**/.dev.vars)",
+      "Read(./**/.dev.vars.staging)",
+      "Read(./**/.dev.vars.production)",
+      "Read(./**/.env)",
+      "Read(./**/.env.local)",
+      "Read(./**/.env.staging)",
+      "Read(./**/.env.production)",
+      "Edit(./**/.dev.vars)",
+      "Edit(./**/.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-worktree.mjs",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/require-plan.mjs",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-invariants.mjs",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-bash.mjs",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-push.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/format-edited.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify-before-stop.mjs",
+            "timeout": 1500
+          }
+        ]
+      }
+    ]
+  }
+}

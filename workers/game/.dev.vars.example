@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local development (never committed). `pnpm dev` does it for you.
+# Key of the item-draw PRF (HMAC-SHA-256). A placeholder for local play only. Staging and
+# production each set their own real key: 32 random bytes, e.g.
+#   openssl rand -base64 32 | wrangler secret put ITEM_DRAW_KEY --env <env>
+# Without it no items are drawn.
+ITEM_DRAW_KEY=local-dev-placeholder-not-a-secret

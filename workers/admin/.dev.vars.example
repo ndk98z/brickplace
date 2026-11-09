@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (never committed). `pnpm dev` does it for you.
+# Dev replaces Cloudflare Access with a fixed local owner (dev-admin@localhost). Staging and
+# production set ENVIRONMENT, ACCESS_TEAM_DOMAIN and ACCESS_AUD in wrangler.jsonc instead.
+ENVIRONMENT=dev

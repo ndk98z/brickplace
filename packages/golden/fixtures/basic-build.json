@@ -1,0 +1,98 @@
+{
+  "name": "basic-build",
+  "description": "All seven shapes in every rotation on an open 64x64 map.",
+  "config": {
+    "size": 64,
+    "open": {
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64
+    },
+    "maxShield": 5
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 0,
+      "y": 0,
+      "shape": 0,
+      "rotation": 0,
+      "color": 1
+    },
+    {
+      "kind": "brick",
+      "x": 5,
+      "y": 0,
+      "shape": 0,
+      "rotation": 1,
+      "color": 2
+    },
+    {
+      "kind": "brick",
+      "x": 8,
+      "y": 0,
+      "shape": 1,
+      "rotation": 2,
+      "color": 3
+    },
+    {
+      "kind": "brick",
+      "x": 12,
+      "y": 0,
+      "shape": 2,
+      "rotation": 0,
+      "color": 4
+    },
+    {
+      "kind": "brick",
+      "x": 16,
+      "y": 0,
+      "shape": 2,
+      "rotation": 1,
+      "color": 5
+    },
+    {
+      "kind": "brick",
+      "x": 20,
+      "y": 0,
+      "shape": 3,
+      "rotation": 0,
+      "color": 6
+    },
+    {
+      "kind": "brick",
+      "x": 24,
+      "y": 0,
+      "shape": 4,
+      "rotation": 1,
+      "color": 7
+    },
+    {
+      "kind": "brick",
+      "x": 28,
+      "y": 0,
+      "shape": 5,
+      "rotation": 2,
+      "color": 8
+    },
+    {
+      "kind": "brick",
+      "x": 32,
+      "y": 0,
+      "shape": 6,
+      "rotation": 3,
+      "color": 9
+    },
+    {
+      "kind": "brick",
+      "x": 0,
+      "y": 0,
+      "shape": 1,
+      "rotation": 0,
+      "color": 10
+    }
+  ],
+  "expectedOutcomes": ["ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "ok", "occupied"],
+  "expectedHash": "38f398df"
+}

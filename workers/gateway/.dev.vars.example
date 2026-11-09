@@ -1,0 +1,20 @@
+# Copy to .dev.vars for local development (never committed). `pnpm dev` does it for you.
+ENVIRONMENT=dev
+
+# Session signing keys: `kid:secret` entries, the first one signs (ADR 0015). A placeholder
+# for local play only. Staging and production each set their own, e.g.
+#   echo "k1:$(openssl rand -base64 32)" | wrangler secret put SESSION_KEYS --env <env>
+SESSION_KEYS=dev:local-dev-placeholder-not-a-secret-0000
+
+# Cloudflare's public Turnstile test secret (always passes). Staging and production use the
+# real secret of their Turnstile widget.
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# OAuth client secrets, real deployments only (local dev signs in with the fake provider).
+# Their client ids are plain vars in wrangler.jsonc.
+# GOOGLE_CLIENT_SECRET=
+# REDDIT_CLIENT_SECRET=
+# DISCORD_CLIENT_SECRET=
+
+# Bots that play on staging (ADR 0034), staging only: ignored here, where bots use ?player=.
+# BOT_KEY=

@@ -1,0 +1,137 @@
+{
+  "name": "open-area-growth",
+  "description": "The open area grows in the log (\"kind\": \"open\"), at its place in the order. Before growth a brick outside it is out_of_area and a 3-cell gap at its edge is a hole a single brick may fill; after growth the same kind of gap is coverable and the brick fits. A growth that does not contain the current area is invalid. Growth takes no time: the next op without `at` happens at 1000, so the shield placed then (lifetime 5000) is still standing for the final hammer.",
+  "config": {
+    "size": 16,
+    "open": {
+      "x": 4,
+      "y": 4,
+      "w": 8,
+      "h": 8
+    },
+    "maxShield": 2,
+    "shieldLifetime": 5000
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 0,
+      "y": 0,
+      "shape": 0,
+      "rotation": 0,
+      "color": 1,
+      "at": 0
+    },
+    {
+      "kind": "brick",
+      "x": 4,
+      "y": 4,
+      "shape": 0,
+      "rotation": 0,
+      "color": 1,
+      "at": 0
+    },
+    {
+      "kind": "brick",
+      "x": 4,
+      "y": 8,
+      "shape": 0,
+      "rotation": 0,
+      "color": 2
+    },
+    {
+      "kind": "brick",
+      "x": 5,
+      "y": 5,
+      "shape": 1,
+      "rotation": 0,
+      "color": 3
+    },
+    {
+      "kind": "brick",
+      "x": 5,
+      "y": 7,
+      "shape": 0,
+      "rotation": 0,
+      "color": 4
+    },
+    {
+      "kind": "shield",
+      "x": 4,
+      "y": 4,
+      "at": 1000
+    },
+    {
+      "kind": "single",
+      "x": 4,
+      "y": 7,
+      "color": 9
+    },
+    {
+      "kind": "open",
+      "x": 2,
+      "y": 2,
+      "w": 12,
+      "h": 12,
+      "at": 100000
+    },
+    {
+      "kind": "single",
+      "x": 4,
+      "y": 6,
+      "color": 9
+    },
+    {
+      "kind": "brick",
+      "x": 3,
+      "y": 5,
+      "shape": 1,
+      "rotation": 0,
+      "color": 5
+    },
+    {
+      "kind": "open",
+      "x": 3,
+      "y": 2,
+      "w": 11,
+      "h": 12
+    },
+    {
+      "kind": "open",
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    {
+      "kind": "brick",
+      "x": 0,
+      "y": 0,
+      "shape": 0,
+      "rotation": 0,
+      "color": 6
+    },
+    {
+      "kind": "hammer",
+      "x": 4,
+      "y": 4
+    }
+  ],
+  "expectedOutcomes": [
+    "out_of_area",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "coverable",
+    "ok",
+    "invalid",
+    "ok",
+    "ok",
+    "ok"
+  ],
+  "expectedHash": "c0011ba9"
+}

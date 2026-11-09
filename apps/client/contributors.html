@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>BrickPlace · Contributors and sponsors</title>
+    <link rel="preload" href="/fonts/fredoka-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/src/pages/pages.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the content</a>
+    <header class="site-header">
+      <div class="container site-header-inner">
+        <a class="logo" href="/">
+          <img class="logo-mark" src="/logo.svg" alt="" width="28" height="28" />
+          <span class="logo-name">BrickPlace</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <a class="nav-link nav-optional" href="/">Map</a>
+          <a class="nav-link" href="/timelapse.html">Timelapse</a>
+          <a class="nav-link" href="/contributors" aria-current="page">Contributors</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="container page-main">
+      <section class="hero">
+        <div class="hero-text">
+          <h1>Made by players,<br />in the open</h1>
+          <p>
+            BrickPlace is open source under AGPL-3.0. Everyone who writes code, draws art,
+            translates or helps moderate is listed here.
+          </p>
+          <div class="actions">
+            <a class="btn btn-dark btn-large" href="{{sourceUrl}}" rel="noopener noreferrer"
+              >View on GitHub</a
+            >
+            <a
+              class="btn btn-outline btn-large"
+              href="{{contributingUrl}}"
+              rel="noopener noreferrer"
+              >How to contribute</a
+            >
+          </div>
+        </div>
+        <div class="stat"><strong id="count">0</strong><span>contributors</span></div>
+      </section>
+
+      <section class="section" aria-labelledby="people-title">
+        <div class="section-head">
+          <h2 id="people-title">Contributors</h2>
+          <fieldset class="filters">
+            <legend class="visually-hidden">Filter by role</legend>
+            <span id="filters" class="filter-buttons"></span>
+          </fieldset>
+        </div>
+        <ul id="people" class="people" aria-live="polite"></ul>
+        <noscript><p class="fine">The list needs JavaScript.</p></noscript>
+      </section>
+
+      <section class="section" aria-labelledby="help-title">
+        <h2 id="help-title">Ways to help</h2>
+        <div class="cards">
+          <article class="card">
+            <h3>Code</h3>
+            <p>Pick an issue labelled good first issue. Every pull request needs a DCO sign-off.</p>
+          </article>
+          <article class="card">
+            <h3>Art and sound</h3>
+            <p>Icons, palette ideas, sound effects. Shared under CC BY-SA 4.0.</p>
+          </article>
+          <article class="card">
+            <h3>Translations</h3>
+            <p>Bring the game to your language.</p>
+          </article>
+          <article class="card">
+            <h3>Moderation</h3>
+            <p>Trusted players review reports and keep the map friendly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="sponsors" class="section sponsors" aria-labelledby="sponsors-title">
+        <h2 id="sponsors-title">Sponsors</h2>
+        <p>
+          Sponsors keep the servers running. They get a small logo next to the map and a place on
+          this page. They never get cells on the map or any say in the game.
+        </p>
+        <div class="sponsor-row">
+          <div id="sponsor-main" class="sponsor-main">
+            <span class="sponsor-kicker">Season sponsor · shown on the map</span>
+            <span class="fine">This spot is open.</span>
+          </div>
+          <div id="supporters" class="supporters">
+            <span class="supporter">Open spot</span>
+            <span class="supporter">Open spot</span>
+            <span class="supporter">Open spot</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a id="become" class="btn-primary" href="{{sponsorHref}}">Become a sponsor</a>
+          <a id="kofi" class="btn btn-outline btn-large" href="{{kofiUrl}}" rel="noopener noreferrer"
+            >Donate on Ko-fi</a
+          >
+          <span class="fine">No account needed. Any amount helps pay for servers.</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer-inner">
+        <span class="site-footer-name">BrickPlace</span>
+        <nav aria-label="Footer" class="site-footer-links">
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/trademarks">Trademarks</a>
+          <a href="/contributors" aria-current="page">Contributors</a>
+          <a href="{{sourceUrl}}" rel="noopener noreferrer"
+            >Source code (AGPL-3.0)</a
+          >
+        </nav>
+        <span class="site-footer-note">Not affiliated with any block-game trademark holder.</span>
+      </div>
+    </footer>
+    <script type="module" src="/src/pages/contributors.ts"></script>
+  </body>
+</html>

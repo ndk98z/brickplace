@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>BrickPlace · Timelapse</title>
+    <link rel="preload" href="/fonts/fredoka-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the timelapse</a>
+    <header class="site-header">
+      <div class="container site-header-inner">
+        <a class="logo" href="/">
+          <img class="logo-mark" src="/logo.svg" alt="" width="28" height="28" />
+          <span class="logo-name">BrickPlace</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <a class="nav-link nav-optional" href="/timelapse.html" aria-current="page">Timelapse</a>
+          <a class="nav-link nav-optional" href="/contributors">Contributors</a>
+          <a class="btn btn-dark btn-small tl-back" href="/">Back to the map</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="container tl-main">
+      <aside class="tl-seasons" aria-labelledby="tl-title">
+        <h1 id="tl-title" class="tl-title">Timelapse</h1>
+        <nav aria-label="Seasons">
+          <ul id="seasons" class="tl-season-list"></ul>
+        </nav>
+      </aside>
+
+      <section class="tl-player" aria-labelledby="tl-heading">
+        <div class="tl-head">
+          <h2 id="tl-heading" class="tl-heading">The map, frame by frame</h2>
+          <p class="tl-sub">Frames never show who placed what. Removed content stays removed.</p>
+          <a id="winner" class="tl-winner" href="/" hidden>
+            <span class="tl-winner-label">Winning team</span>
+            <span id="winner-name" class="tl-winner-name"></span>
+          </a>
+        </div>
+
+        <div class="tl-card">
+          <div id="stage" class="tl-stage">
+            <canvas
+              id="map"
+              class="tl-canvas"
+              width="1"
+              height="1"
+              role="img"
+              aria-label="The map at the frame shown"
+              hidden
+            ></canvas>
+            <div id="empty" class="tl-empty" hidden>
+              <span class="tl-empty-art" aria-hidden="true"
+                ><span></span><span></span><span></span><span></span><span></span><span></span
+              ></span>
+              <h3 id="empty-title" class="tl-empty-title">No frames yet</h3>
+              <p id="empty-body" class="tl-empty-body">
+                The timelapse starts once the first bricks are placed.
+              </p>
+              <div class="tl-empty-actions">
+                <a class="btn btn-dark" href="/">Back to the map</a>
+                <button id="retry" type="button" class="btn btn-light" hidden>Try again</button>
+              </div>
+            </div>
+            <p id="status" class="tl-status" role="status">Loading the timelapse…</p>
+          </div>
+
+          <p id="note" class="tl-note" hidden></p>
+
+          <div id="controls" class="tl-controls" hidden>
+            <button id="play" type="button" class="tl-play" aria-label="Play timelapse" disabled>
+              <svg class="tl-icon-play" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 4.5v15l12-7.5z" fill="currentColor" />
+              </svg>
+              <svg class="tl-icon-pause" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" hidden>
+                <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" />
+                <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" />
+              </svg>
+            </button>
+            <div class="tl-scrub">
+              <input
+                id="frame"
+                class="tl-range"
+                type="range"
+                min="0"
+                max="0"
+                value="0"
+                disabled
+                aria-label="Frame"
+                aria-describedby="when"
+              />
+              <div class="tl-scale" aria-hidden="true">
+                <span id="first"></span>
+                <span id="last"></span>
+              </div>
+            </div>
+            <fieldset class="tl-speed">
+              <legend class="visually-hidden">Playback speed</legend>
+              <label><input type="radio" name="speed" value="1" /><span>1×</span></label>
+              <label><input type="radio" name="speed" value="2" checked /><span>2×</span></label>
+              <label><input type="radio" name="speed" value="4" /><span>4×</span></label>
+              <label><input type="radio" name="speed" value="8" /><span>8×</span></label>
+            </fieldset>
+          </div>
+          <p id="when" class="tl-when"></p>
+        </div>
+
+        <p id="keys" class="tl-keys" hidden>
+          <kbd>Space</kbd> plays or pauses · <kbd>←</kbd> <kbd>→</kbd> step one frame ·
+          <kbd>Home</kbd> <kbd>End</kbd> jump to the first or last
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer-inner">
+        <span class="site-footer-name">BrickPlace</span>
+        <nav aria-label="Footer" class="site-footer-links">
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/trademarks">Trademarks</a>
+          <a href="/contributors">Contributors</a>
+          <a href="{{sourceUrl}}" rel="noopener noreferrer"
+            >Source code (AGPL-3.0)</a
+          >
+        </nav>
+        <span class="site-footer-note">Not affiliated with any block-game trademark holder.</span>
+      </div>
+    </footer>
+    <script type="module" src="/src/timelapse/main.ts"></script>
+  </body>
+</html>

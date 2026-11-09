@@ -1,0 +1,44 @@
+name: Release
+
+# release-please keeps a release PR open against `main` from Conventional Commits that reach
+# it from `develop`. Merging it tags a release, which deploys to production (the production
+# environment accepts `main` only) once the owner sets the repository variable
+# PRODUCTION_ENABLED to `true`; until then a release only tags. After a release, merge `main`
+# back into `develop` with a merge commit (never squash) so the changelog and version bump
+# reach it.
+# Note: PRs opened with GITHUB_TOKEN do not trigger CI; push an empty commit to the release
+# PR or switch to a GitHub App token if that becomes annoying.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          # Without it the action targets the repository's default branch, `develop`.
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  production:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true' && vars.PRODUCTION_ENABLED == 'true'
+    permissions:
+      contents: write # deploy.yml records deployed/<env>/<script> tags
+    uses: ./.github/workflows/deploy.yml
+    with:
+      env: production
+    secrets: inherit

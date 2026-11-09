@@ -1,0 +1,483 @@
+/* The season timelapse page (Seasons design): the site header, a season list beside the
+   player, the map on a card with its controls under it, and the site footer. Tokens, header,
+   footer and buttons come from base.css, like every other page. */
+
+@import "../ui/base.css";
+
+/* `hidden` wins over the display of the classes below. */
+[hidden][hidden] {
+  display: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.tl-main {
+  display: flex;
+  flex-grow: 1;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-7);
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-9);
+}
+
+/* ---- season list ---- */
+
+.tl-seasons {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 260px;
+}
+
+.tl-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-lg);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.tl-season-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tl-season {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tl-season:hover {
+  border-color: var(--ink);
+}
+
+.tl-season[aria-current="page"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+.tl-season-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+
+.tl-season-meta {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.tl-season[aria-current="page"] .tl-season-meta {
+  color: var(--on-dark-2);
+}
+
+.tl-live {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: #2bb673;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---- player ---- */
+
+.tl-player {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.tl-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tl-heading {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-lg);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.tl-sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+
+/* The Seasons design's "Winning team" card: a season that is over links to its ranking. */
+.tl-winner {
+  display: inline-flex;
+  flex-direction: column;
+  align-self: flex-start;
+  gap: 2px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 16px;
+  background: #fff1a8;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tl-winner[hidden] {
+  display: none;
+}
+
+.tl-winner-label {
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tl-winner-name {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.tl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--panel);
+}
+
+/* The map's frame: the canvas sits centred in it at the size main.ts fits (stage.ts). */
+.tl-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--soft);
+}
+
+.tl-canvas {
+  display: block;
+  border-radius: 6px;
+  background: var(--map-bg);
+  box-shadow: 0 0 0 1px var(--line);
+  image-rendering: pixelated;
+}
+
+.tl-status {
+  position: absolute;
+  bottom: var(--space-3);
+  left: 50%;
+  margin: 0;
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.tl-status:empty {
+  display: none;
+}
+
+.tl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 420px;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+}
+
+.tl-empty-art {
+  display: grid;
+  grid-template-columns: repeat(3, 18px);
+  grid-auto-rows: 18px;
+  gap: 4px;
+  margin-bottom: var(--space-2);
+}
+
+.tl-empty-art span {
+  border: 2px dashed var(--line-strong);
+  border-radius: 6px;
+}
+
+.tl-empty-art span:nth-child(5) {
+  border: none;
+  background: var(--accent);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.tl-empty-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-sm);
+  font-weight: 700;
+}
+
+.tl-empty-body {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+.tl-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.tl-note {
+  margin: 0;
+  padding: var(--space-3) 14px;
+  border-radius: var(--radius-md);
+  background: var(--warn-soft);
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+
+/* ---- controls ---- */
+
+.tl-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.tl-play {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 24px;
+  background: var(--accent);
+  box-shadow: 0 3px 0 var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tl-play:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.tl-play:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--ink);
+  transform: translateY(2px);
+}
+
+.tl-scrub {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tl-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* The design's slider: an 8 px track filled up to the frame shown, a ringed thumb. */
+.tl-range {
+  --fill: 0%;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.tl-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tl-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, var(--ink) var(--fill), #e9edf5 var(--fill));
+}
+
+.tl-range::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #e9edf5;
+}
+
+.tl-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ink);
+}
+
+.tl-range::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: var(--panel);
+  appearance: none;
+}
+
+.tl-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+/* Speed: a segmented control over native radios (arrow keys move between them). */
+.tl-speed {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.tl-speed label {
+  position: relative;
+  cursor: pointer;
+}
+
+.tl-speed input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tl-speed span {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.tl-speed input:checked + span {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+.tl-speed input:focus-visible + span {
+  outline: 3px solid var(--blue-ink);
+  outline-offset: 2px;
+}
+
+.tl-when {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-when:empty {
+  display: none;
+}
+
+.tl-keys {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.tl-keys kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--panel);
+  font-family: inherit;
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 720px) {
+  .tl-main {
+    gap: var(--space-5);
+    padding-top: var(--space-6);
+  }
+
+  .tl-seasons {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  /* Seasons scroll sideways rather than push the map down. */
+  .tl-season-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+  }
+
+  .tl-season {
+    flex-shrink: 0;
+  }
+
+  .tl-heading {
+    font-size: var(--title-md);
+  }
+
+  .tl-card {
+    padding: 10px;
+  }
+
+  .tl-keys {
+    display: none;
+  }
+}
+
+/* The map's "Reduce motion" preference, which starts from the system setting (main.ts). */
+:root[data-motion="reduce"] .tl-play:active:not(:disabled) {
+  transform: none;
+}

@@ -1,0 +1,149 @@
+{
+  "name": "single-brick",
+  "description": "Single bricks fill only holes no brick placement can cover (cells outside the open area count as blocked), never paint over a filled cell, and never link to neighbours.",
+  "config": {
+    "size": 16,
+    "open": {
+      "x": 4,
+      "y": 4,
+      "w": 8,
+      "h": 8
+    },
+    "maxShield": 2
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 5,
+      "y": 4,
+      "shape": 2,
+      "rotation": 0,
+      "color": 1
+    },
+    {
+      "kind": "brick",
+      "x": 4,
+      "y": 5,
+      "shape": 1,
+      "rotation": 0,
+      "color": 1
+    },
+    {
+      "kind": "single",
+      "x": 4,
+      "y": 4,
+      "color": 1
+    },
+    {
+      "kind": "single",
+      "x": 4,
+      "y": 4,
+      "color": 2
+    },
+    {
+      "kind": "single",
+      "x": 9,
+      "y": 9,
+      "color": 2
+    },
+    {
+      "kind": "single",
+      "x": 2,
+      "y": 2,
+      "color": 2
+    },
+    {
+      "kind": "single",
+      "x": 8,
+      "y": 8,
+      "color": 32
+    },
+    {
+      "kind": "hammer",
+      "x": 4,
+      "y": 4
+    },
+    {
+      "kind": "single",
+      "x": 4,
+      "y": 4,
+      "color": 1
+    },
+    {
+      "kind": "brick",
+      "x": 10,
+      "y": 4,
+      "shape": 0,
+      "rotation": 1,
+      "color": 5
+    },
+    {
+      "kind": "brick",
+      "x": 11,
+      "y": 7,
+      "shape": 0,
+      "rotation": 1,
+      "color": 5
+    },
+    {
+      "kind": "single",
+      "x": 11,
+      "y": 5,
+      "color": 6
+    },
+    {
+      "kind": "single",
+      "x": 11,
+      "y": 4,
+      "color": 6
+    },
+    {
+      "kind": "single",
+      "x": 9,
+      "y": 4,
+      "color": 6
+    },
+    {
+      "kind": "shield",
+      "x": 11,
+      "y": 4
+    },
+    {
+      "kind": "hammer",
+      "x": 11,
+      "y": 4
+    },
+    {
+      "kind": "hammer",
+      "x": 11,
+      "y": 4
+    },
+    {
+      "kind": "single",
+      "x": 11,
+      "y": 4,
+      "color": 7
+    }
+  ],
+  "expectedOutcomes": [
+    "ok",
+    "ok",
+    "ok",
+    "occupied",
+    "coverable",
+    "out_of_area",
+    "invalid",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "coverable",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+  ],
+  "expectedHash": "ccaa8950"
+}

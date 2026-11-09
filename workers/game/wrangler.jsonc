@@ -1,0 +1,114 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brickplace-game",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Issues groups errors (ops events at error level among them, docs/ops/alerts.md) and routes
+  // them to the owner's alerts. Kept here: a deploy without it would turn Issues off again.
+  // Logs stay unsampled (alerts count events); traces follow RPC calls into the Durable
+  // Objects. Production samples traces (below). Dashboard edits are overwritten by deploys.
+  "observability": {
+    "enabled": true,
+    "issues": { "enabled": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1 }
+  },
+  // Reached only through bindings: no workers.dev address, no preview URLs.
+  "workers_dev": false,
+  "preview_urls": false,
+  // This script OWNS the game-rule DO classes. Other scripts bind to them with script_name.
+  // Changing `migrations` must happen in a PR of its own (see tools/ci/check-do-lifecycle.ts).
+  // FANOUT: the realtime script's shards, which the canvas pushes diff ticks to (ADR 0028).
+  "durable_objects": {
+    "bindings": [
+      { "name": "CANVAS", "class_name": "CanvasDO" },
+      { "name": "FANOUT", "class_name": "FanoutDO", "script_name": "brickplace-realtime" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["CanvasDO"] }],
+  // ADR 0014. OPLOG is private (op-log segments; will carry player ids, ADR 0008): never give
+  // it a public domain. TILES is public behind the CDN (tiles, diff segments, manifest; ADR
+  // 0009). Bucket names are placeholders until the owner creates the buckets; local dev and
+  // tests use miniflare's R2.
+  "r2_buckets": [
+    { "binding": "OPLOG", "bucket_name": "brickplace-oplog-dev" },
+    { "binding": "TILES", "bucket_name": "brickplace-tiles-dev" }
+  ],
+  // ADR 0020. The standings database, only team_standings (schema in migrations/): the canvas
+  // writes team counters there, the gateway reads them for the ranking. Never the accounts
+  // database. Placeholder ids until the owner creates the databases; they differ from the
+  // accounts placeholder so local dev and tests keep the two apart.
+  "d1_databases": [
+    {
+      "binding": "STANDINGS",
+      "database_name": "brickplace-standings",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Abuse thresholds written from the private ops repo (the daily team cap, ADR 0020): the
+  // same namespace as the gateway's MODERATION. Placeholder id.
+  "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+  "env": {
+    // Bindings do not inherit into environments, so each one repeats them. `secrets` lists
+    // names only: `wrangler deploy` refuses to ship while one is not set on the Worker (no
+    // items are drawn without ITEM_DRAW_KEY). Never at the top level, where it would also
+    // filter .dev.vars in local dev (docs/ops/setup.md).
+    "staging": {
+      "secrets": { "required": ["ITEM_DRAW_KEY"] },
+      "durable_objects": {
+        "bindings": [
+          { "name": "CANVAS", "class_name": "CanvasDO" },
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-staging"
+          }
+        ]
+      },
+      "r2_buckets": [
+        { "binding": "OPLOG", "bucket_name": "brickplace-oplog-staging" },
+        { "binding": "TILES", "bucket_name": "brickplace-tiles-staging" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "STANDINGS",
+          "database_name": "brickplace-standings-staging",
+          "database_id": "7c4ec296-66f4-4307-a87c-ebe08930bfc7",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "a45dfff2b8f7478eab7df96bccd7b76a" }]
+    },
+    "production": {
+      "observability": {
+        "enabled": true,
+        "issues": { "enabled": true },
+        "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+      },
+      "secrets": { "required": ["ITEM_DRAW_KEY"] },
+      "durable_objects": {
+        "bindings": [
+          { "name": "CANVAS", "class_name": "CanvasDO" },
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-production"
+          }
+        ]
+      },
+      "r2_buckets": [
+        { "binding": "OPLOG", "bucket_name": "brickplace-oplog-production" },
+        { "binding": "TILES", "bucket_name": "brickplace-tiles-production" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "STANDINGS",
+          "database_name": "brickplace-standings-production",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }]
+    }
+  }
+}

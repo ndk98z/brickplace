@@ -1,0 +1,608 @@
+/* Landing, first-time guide and share dialog (Landing, Onboarding and Share designs). Loaded
+   with those screens' chunk, not with the game; tokens, header, footer and buttons are in
+   base.css (loaded with the game). */
+
+/* ---- item drawings ---- */
+
+.item-art {
+  display: grid;
+  grid-template-columns: repeat(3, 22px);
+  grid-auto-rows: 22px;
+  gap: 4px;
+}
+
+.item-art-cell {
+  border-radius: 7px;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.item-art-ring {
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 2px var(--ink);
+}
+
+/* ---- landing ---- */
+
+/* An opaque, full-viewport layer: the game's own header and tools never show through. */
+.landing {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--soft);
+  color: var(--ink);
+}
+
+/* As the Landing design draws it: on the hero's soft background, no bar or rule, in the same
+   column as every section. Other pages keep the white site header. */
+.landing-head .site-header-inner {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-5);
+}
+
+.landing-head .nav-link:hover {
+  background: var(--panel);
+}
+
+.landing-hero {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-9);
+}
+
+.landing-hero-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.landing-hero-text {
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.landing-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-hero);
+  font-weight: 700;
+  line-height: 1.02;
+}
+
+.landing-lead {
+  max-width: 540px;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-lead);
+  line-height: 1.55;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.landing-primary {
+  font-size: 20px;
+}
+
+.landing-secondary {
+  border-width: 2px;
+}
+
+.landing-fine {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+
+.landing-art {
+  display: flex;
+  flex: 1 1 420px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.landing-art-grid {
+  --cell: clamp(12px, 1.3vw, 19px);
+  display: grid;
+  grid-template-columns: repeat(24, var(--cell));
+  grid-auto-rows: var(--cell);
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  background: var(--panel);
+  box-shadow: 0 20px 50px rgba(23, 27, 38, 0.14);
+  transform: rotate(-2deg);
+}
+
+.landing-art-cell,
+.landing-art-empty {
+  margin: 1px;
+  border-radius: 4px;
+}
+
+.landing-art-cell {
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.landing-art-empty {
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px #e6eaf2;
+}
+
+.landing-band {
+  padding-top: var(--space-9);
+  padding-bottom: var(--space-9);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.landing-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.landing-h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.landing-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-5);
+}
+
+.landing-item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: var(--radius-xl);
+}
+
+/* One box for every item's picture, so the titles under them share a baseline. */
+.landing-item-icon {
+  display: flex;
+  align-items: center;
+  height: 56px;
+}
+
+.landing-item-brick {
+  background: var(--accent-soft);
+}
+
+.landing-item-single {
+  background: var(--yellow-soft);
+}
+
+.landing-item-hammer {
+  background: var(--soft);
+}
+
+.landing-item-shield {
+  background: var(--blue-soft);
+}
+
+.landing-item h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-md);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.landing-item p,
+.landing-card p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+.landing-more {
+  padding-top: var(--space-9);
+  padding-bottom: var(--space-9);
+}
+
+.landing-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.landing-card {
+  display: flex;
+  flex: 1 1 380px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-7);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--panel);
+}
+
+.landing-card-dark {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+.landing-card-dark p {
+  color: var(--on-dark-2);
+}
+
+.landing-card .landing-actions {
+  margin-top: auto;
+}
+
+.landing-h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--title-lg);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+/* ---- first-time guide ---- */
+
+.guide-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: #c9d0de;
+}
+
+.guide-dot-on {
+  width: 28px;
+  background: var(--accent);
+}
+
+.guide-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.guide-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.guide-copy {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.guide-note,
+.guide-aside {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.guide-hold {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.guide-aside {
+  max-width: 220px;
+}
+
+.guide-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
+  background: var(--soft);
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.guide-slot .item-art {
+  grid-template-columns: repeat(3, 12px);
+  grid-auto-rows: 12px;
+  gap: 2px;
+}
+
+.guide-slot .item-art-cell {
+  border-radius: 4px;
+}
+
+.guide-slot-on {
+  border: 2px solid var(--ink);
+  background: var(--accent-soft);
+}
+
+.guide-slot-empty {
+  gap: 2px;
+  border: 2px dashed #c9d0de;
+  background: none;
+}
+
+.guide-slot-empty strong {
+  font-size: 22px;
+}
+
+.guide-slot-empty span {
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: 11px;
+}
+
+.guide-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guide-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.guide-item strong {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.guide-item span {
+  color: var(--ink-2);
+}
+
+.guide-item .item-art {
+  grid-template-columns: repeat(3, 14px);
+  grid-auto-rows: 14px;
+  gap: 3px;
+}
+
+.guide-item .item-art-cell {
+  border-radius: 4px;
+}
+
+.guide-team {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.guide-team .btn {
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.guide-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.guide-skip {
+  margin-right: auto;
+}
+
+.guide-foot .btn {
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.guide-start {
+  height: 48px;
+  padding: 0 22px;
+}
+
+/* ---- share ---- */
+
+.dialog:has(> .share) {
+  max-width: 880px;
+}
+
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.share-preview {
+  display: flex;
+  flex: 1 1 280px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--soft);
+}
+
+/* Holds the canvas and the drag box over it, at the canvas's own size. */
+.share-frame {
+  position: relative;
+  max-width: 100%;
+  line-height: 0;
+}
+
+.share-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(23, 27, 38, 0.1);
+  cursor: crosshair;
+  image-rendering: pixelated;
+  /* A drag on a touch screen selects instead of scrolling the dialog. */
+  touch-action: none;
+}
+
+.share-selection {
+  position: absolute;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 1px #ffffff;
+  pointer-events: none;
+}
+
+.share-side {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.share-title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.share-side .dialog-copy {
+  text-align: left;
+}
+
+.share-link {
+  display: flex;
+  gap: 8px;
+}
+
+.share-link .field-input {
+  flex-grow: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.share-link .btn {
+  height: 48px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.share-capture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 14px;
+}
+
+.share-capture legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.share-capture label,
+.share-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.share-check {
+  font-size: 14px;
+}
+
+.share-check input,
+.share-capture input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ink);
+}
+
+.share-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.share-buttons .btn {
+  height: 48px;
+  font-size: 14px;
+}
+
+.share-main {
+  border: 1.5px solid var(--ink);
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+
+.share-back {
+  align-self: flex-start;
+}
+
+@media (max-width: 720px) {
+  .landing-nav-link,
+  .landing-art {
+    display: none;
+  }
+
+  .landing-hero {
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-8);
+  }
+
+  .landing-band,
+  .landing-more {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
+  }
+
+  .landing-item,
+  .landing-card {
+    padding: var(--space-6);
+  }
+
+  .guide-items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide-title {
+    font-size: 26px;
+  }
+}

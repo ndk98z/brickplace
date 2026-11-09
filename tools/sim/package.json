@@ -1,0 +1,22 @@
+{
+  "name": "@brickplace/sim",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "description": "Season simulation on the real core, used to tune drop rates before launch.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sim": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@brickplace/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

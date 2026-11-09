@@ -1,0 +1,178 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brickplace-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Issues groups errors and 5xx answers and routes them to the owner's alerts
+  // (docs/ops/alerts.md). Kept here: a deploy without it would turn Issues off again.
+  // Logs stay unsampled (alerts count events); production samples traces (below). Dashboard
+  // edits are overwritten by deploys.
+  "observability": {
+    "enabled": true,
+    "issues": { "enabled": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1 }
+  },
+  "assets": {
+    "directory": "../../apps/client/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/ws", "/healthz", "/api/*", "/auth/*"]
+  },
+  // Locked by default: a deploy without --env must never open /ws, /api or /auth.
+  // Local dev unlocks it with ENVIRONMENT=dev in .dev.vars (see .dev.vars.example).
+  // Public settings only. Secrets (OAuth client secrets, TURNSTILE_SECRET_KEY, SESSION_KEYS)
+  // are Workers secrets; locally they come from .dev.vars.
+  "vars": {
+    "ENVIRONMENT": "locked",
+    // Cloudflare's public Turnstile test site key (always passes), for local dev and tests.
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "FANOUT", "class_name": "FanoutDO", "script_name": "brickplace-realtime" }
+    ]
+  },
+  // Accounts (ADR 0016). Local dev and tests use a local database; the id is a placeholder
+  // until the owner creates the real ones (see docs/adr/0016).
+  // STANDINGS (ADR 0020): team standings the canvas writes, read here for the ranking. The
+  // game Worker owns its schema (../game/migrations); listed here so `pnpm dev` applies it to
+  // the local database this config's state holds. Placeholder id.
+  "d1_databases": [
+    {
+      "binding": "ACCOUNTS",
+      "database_name": "brickplace-accounts",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "STANDINGS",
+      "database_name": "brickplace-standings",
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "../game/migrations"
+    }
+  ],
+  // Moderation data written from the private ops repo (nickname word list). Placeholder id.
+  "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+  // The tiles bucket the game script publishes to (ADR 0014), for local dev only: one
+  // `wrangler dev` shares a local bucket by name across scripts, and the gateway serves it
+  // read-only under /api/dev/tiles/ when ENVIRONMENT=dev (ADR 0018). Staging and production
+  // do not bind it (empty lists below): pages read the bucket's own domain, TILES_ORIGIN.
+  // Not named TILES, so the CanvasDO hosted by the gateway's test Worker does not publish.
+  // SPONSOR_LOGOS (ADR 0038): the private bucket the admin Worker writes sponsor logos to,
+  // served from here under /api/sponsor-logos/ so players only ever load them from this site.
+  "r2_buckets": [
+    { "binding": "DEV_TILES", "bucket_name": "brickplace-tiles-dev" },
+    { "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-dev" }
+  ],
+  "env": {
+    // Bindings and vars do not inherit into environments, so each one repeats them. Empty
+    // values keep a feature closed until the owner fills them in (see docs/adr/0015).
+    "staging": {
+      // Served on its custom domain in the brickplace.app zone only (deploys need Zone / Workers
+      // Routes / Edit there), so every request passes the zone's WAF rules: no workers.dev
+      // address (ADR 0045, amended) and no preview URLs (no PR previews). Written out: wrangler
+      // would also default it to false once routes exist, but a removed route must not reopen it.
+      "routes": [{ "pattern": "staging.brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "PUBLIC_ORIGIN": "https://staging.brickplace.app",
+        // https origin of the tiles bucket: its custom domain on the brickplace.app zone
+        // (ADR 0044, amended 2026-11-03).
+        "TILES_ORIGIN": "https://tiles-staging.brickplace.app",
+        // FanoutDO shards (ADR 0028), players spread by account: one object that Cloudflare
+        // moves drops a third of the sockets, not all (PROGRESS.md, 2026-11-02). The cap per
+        // shard is ceil(players-at-once cap / 3) (ADR 0039).
+        "FANOUT_SHARDS": "3",
+        "GOOGLE_CLIENT_ID": "832780590955-r56ni239rt186e7kqf6p4h0hjtef3jau.apps.googleusercontent.com",
+        "REDDIT_CLIENT_ID": "",
+        "DISCORD_CLIENT_ID": "1563839799226409032",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAFlAbnyLksM-LCxx"
+      },
+      // Names only: `wrangler deploy` refuses to ship while one of these is not set on the
+      // Worker. An OAuth secret is listed exactly when its client id above is set. Never at the
+      // top level: there it would also filter .dev.vars in local dev (docs/ops/setup.md).
+      "secrets": {
+        "required": [
+          "SESSION_KEYS",
+          "TURNSTILE_SECRET_KEY",
+          "GOOGLE_CLIENT_SECRET",
+          "DISCORD_CLIENT_SECRET"
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-staging"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "ACCOUNTS",
+          "database_name": "brickplace-accounts-staging",
+          "database_id": "59c3d79f-aab6-4fc0-8f7d-4c252f6575df",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "STANDINGS",
+          "database_name": "brickplace-standings-staging",
+          "database_id": "7c4ec296-66f4-4307-a87c-ebe08930bfc7",
+          "migrations_dir": "../game/migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "a45dfff2b8f7478eab7df96bccd7b76a" }],
+      "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
+    },
+    "production": {
+      "preview_urls": false,
+      "observability": {
+        "enabled": true,
+        "issues": { "enabled": true },
+        "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+      },
+      "vars": {
+        "ENVIRONMENT": "production",
+        "PUBLIC_ORIGIN": "",
+        // https origin of the tiles bucket's custom domain; empty keeps watchers on sockets.
+        "TILES_ORIGIN": "",
+        "GOOGLE_CLIENT_ID": "",
+        "REDDIT_CLIENT_ID": "",
+        "DISCORD_CLIENT_ID": "",
+        "TURNSTILE_SITE_KEY": ""
+      },
+      // As in staging; add each OAuth secret here when its client id is filled in.
+      "secrets": { "required": ["SESSION_KEYS", "TURNSTILE_SECRET_KEY"] },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-production"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "ACCOUNTS",
+          "database_name": "brickplace-accounts-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "STANDINGS",
+          "database_name": "brickplace-standings-production",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "../game/migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+      "r2_buckets": [
+        { "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-production" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brickplace-realtime",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Issues groups errors and routes them to the owner's alerts (docs/ops/alerts.md). Kept here:
+  // a deploy without it would turn Issues off again. Logs stay unsampled (alerts count events);
+  // production samples traces (below). Dashboard edits are overwritten by deploys.
+  "observability": {
+    "enabled": true,
+    "issues": { "enabled": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1 }
+  },
+  // Reached only through bindings: no workers.dev address, no preview URLs.
+  "workers_dev": false,
+  "preview_urls": false,
+  // Kept on legacy `migrations` (not `exports`) so this script can use gradual deployments:
+  // FanoutDOs then move to a new version one by one instead of all sockets dropping at once.
+  "durable_objects": {
+    "bindings": [
+      { "name": "FANOUT", "class_name": "FanoutDO" },
+      { "name": "CANVAS", "class_name": "CanvasDO", "script_name": "brickplace-game" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["FanoutDO"] }],
+  // Abuse thresholds written from the private ops repo (`abuse-policy`, ADR 0026): the same
+  // namespace as the gateway's and the game's MODERATION. Placeholder id.
+  "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+  "env": {
+    // Bindings do not inherit into environments, so each one repeats them.
+    "staging": {
+      "durable_objects": {
+        "bindings": [
+          { "name": "FANOUT", "class_name": "FanoutDO" },
+          { "name": "CANVAS", "class_name": "CanvasDO", "script_name": "brickplace-game-staging" }
+        ]
+      },
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "a45dfff2b8f7478eab7df96bccd7b76a" }]
+    },
+    "production": {
+      "observability": {
+        "enabled": true,
+        "issues": { "enabled": true },
+        "traces": { "enabled": true, "head_sampling_rate": 0.05 }
+      },
+      "durable_objects": {
+        "bindings": [
+          { "name": "FANOUT", "class_name": "FanoutDO" },
+          {
+            "name": "CANVAS",
+            "class_name": "CanvasDO",
+            "script_name": "brickplace-game-production"
+          }
+        ]
+      },
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }]
+    }
+  }
+}

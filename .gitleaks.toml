@@ -1,0 +1,17 @@
+# Secret scanning in CI (gitleaks-action, .github/workflows/ci.yml): the default rules, plus
+# one narrow exception. Never allow a real secret here: put it in Workers Secrets instead.
+title = "brickplace"
+
+[extend]
+useDefault = true
+
+# A Cloudflare Access application's AUD tag names the application; it is not a secret and
+# belongs in wrangler.jsonc (ADR 0022). Its 64 hex characters look like a key to the
+# generic-api-key rule, so a line that sets ACCESS_AUD to 64 hex characters is allowed, and
+# nothing else. The single global `[allowlist]` table: CI's gitleaks (8.24) ignores the newer
+# `[[allowlists]]` array. No `paths` here: in this table a path would allow every finding in
+# that file.
+[allowlist]
+description = "Cloudflare Access AUD tags (public, ADR 0022)"
+regexTarget = "line"
+regexes = ['''"ACCESS_AUD": "[0-9a-f]{64}"''']

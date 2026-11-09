@@ -1,0 +1,59 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/worker-configuration.d.ts",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/.wrangler",
+      "!pnpm-lock.yaml",
+      "!CODE_OF_CONDUCT.md",
+      "!LICENSE"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always"
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "style": {
+        "noNonNullAssertion": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/core/**", "packages/protocol/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "cloudflare:workers": "core and protocol must stay platform-free so they can run in Node, the browser and a future Rust port.",
+                  "node:crypto": "core and protocol must stay platform-free."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>BrickPlace</title>
+  <rect width="32" height="32" rx="8" fill="#1d2130"/>
+  <g transform="translate(5 5) scale(0.6875)">
+    <rect x="1" y="5" width="14" height="6" rx="1.5" fill="#ff6b3d"/>
+    <rect x="17" y="5" width="14" height="6" rx="1.5" fill="#3d7bff"/>
+    <rect x="1" y="13" width="6" height="6" rx="1.5" fill="#ffd23f"/>
+    <rect x="9" y="13" width="14" height="6" rx="1.5" fill="#2bb673"/>
+    <rect x="25" y="13" width="6" height="6" rx="1.5" fill="#ffd23f"/>
+    <rect x="1" y="21" width="14" height="6" rx="1.5" fill="#3d7bff"/>
+    <rect x="17" y="21" width="14" height="6" rx="1.5" fill="#ff6b3d"/>
+  </g>
+</svg>

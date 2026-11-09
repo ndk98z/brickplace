@@ -1,0 +1,72 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "globalDependencies": ["tsconfig.base.json", ".node-version"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "types"],
+      "env": ["VITE_*"],
+      "outputs": ["dist/**"]
+    },
+    "types": {
+      "inputs": ["wrangler.jsonc"],
+      "outputs": ["worker-configuration.d.ts"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "types"]
+    },
+    "test": {
+      "dependsOn": ["^build", "types"],
+      "env": ["UPDATE_GOLDEN"]
+    },
+    "@brickplace/game#test": {
+      "dependsOn": ["^build", "types"],
+      "env": ["UPDATE_GOLDEN"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/client/src/net/cdn.ts",
+        "$TURBO_ROOT$/apps/client/src/net/cdn-fetch.ts",
+        "$TURBO_ROOT$/apps/client/src/net/spread.ts",
+        "$TURBO_ROOT$/apps/client/src/map/store.ts"
+      ]
+    },
+    "@brickplace/game#typecheck": {
+      "dependsOn": ["^build", "types"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/client/src/net/cdn.ts",
+        "$TURBO_ROOT$/apps/client/src/net/cdn-fetch.ts",
+        "$TURBO_ROOT$/apps/client/src/net/spread.ts",
+        "$TURBO_ROOT$/apps/client/src/map/store.ts"
+      ]
+    },
+    "@brickplace/bots#test": {
+      "dependsOn": ["^build", "types"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/client/src/palette.ts"]
+    },
+    "@brickplace/bots#typecheck": {
+      "dependsOn": ["^build", "types"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/client/src/palette.ts"]
+    },
+    "@brickplace/gateway#test": {
+      "dependsOn": ["^build", "types"],
+      "env": ["UPDATE_GOLDEN"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/workers/game/migrations/**"]
+    },
+    "@brickplace/admin#test": {
+      "dependsOn": ["^build", "types"],
+      "env": ["UPDATE_GOLDEN"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/workers/gateway/migrations/**"]
+    },
+    "@brickplace/ci-tools#test": {
+      "dependsOn": ["^build", "types"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.claude/**",
+        "$TURBO_ROOT$/workers/*/wrangler.jsonc",
+        "$TURBO_ROOT$/.gitignore",
+        "$TURBO_ROOT$/biome.json"
+      ]
+    }
+  }
+}

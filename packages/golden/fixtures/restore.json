@@ -1,0 +1,170 @@
+{
+  "name": "restore",
+  "description": "Moderation rollbacks (ADR 0024): a `restore` entry sets each listed cell, [index, cell byte, ...shield layer expiry times], to its value, takes no time and changes counters like the ops do. It puts a hammered cell of an O brick back with the links into it, then is refused (changing nothing) for: emptying a cell that neighbours link into; each check alone on the isolated cell (12, 12) = 204: an empty cell with bits, an empty cell with a layer, more layers than maxShield, a byte over 255, a repeated index, a link to another colour, a link right off the map's edge (x = 15, which would wrap onto (0, 13)), and, after a valid linked pair there, emptying the cell its left neighbour links into (the pair is then removed again); a layer at or before the clock (2000), a layer outliving one placed now (after clock + lifetime, 12000), and unsorted indices. A restore adds a layer (expiring at 9000) to the restored cell, then one empties an I brick so an O brick fits in its place. Later hammers break the restored layer, clear the restored cell, and clear (2, 2) once its own layer expired at 11000.",
+  "config": {
+    "size": 16,
+    "open": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "maxShield": 2,
+    "shieldLifetime": 10000
+  },
+  "ops": [
+    {
+      "kind": "brick",
+      "x": 2,
+      "y": 2,
+      "shape": 1,
+      "rotation": 0,
+      "color": 5,
+      "at": 0
+    },
+    {
+      "kind": "shield",
+      "x": 2,
+      "y": 2,
+      "at": 1000
+    },
+    {
+      "kind": "hammer",
+      "x": 3,
+      "y": 3,
+      "at": 2000
+    },
+    {
+      "kind": "restore",
+      "cells": [[35, 149], [50, 150], [51, 148]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[51, 0]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 4]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 0, 3000]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 140, 3000, 4000, 5000]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 384]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 140], [204, 140]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 142], [205, 144]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[207, 142], [208, 140]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 142], [205, 140]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[205, 0]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[204, 0], [205, 0]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[34, 151, 1500]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[34, 151, 11000, 12001]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[51, 148], [50, 150]]
+    },
+    {
+      "kind": "restore",
+      "cells": [[51, 148, 9000]]
+    },
+    {
+      "kind": "brick",
+      "x": 8,
+      "y": 8,
+      "shape": 0,
+      "rotation": 0,
+      "color": 2,
+      "at": 3000
+    },
+    {
+      "kind": "restore",
+      "cells": [[136, 0], [137, 0], [138, 0], [139, 0]]
+    },
+    {
+      "kind": "brick",
+      "x": 8,
+      "y": 7,
+      "shape": 1,
+      "rotation": 0,
+      "color": 3,
+      "at": 4000
+    },
+    {
+      "kind": "hammer",
+      "x": 3,
+      "y": 3,
+      "at": 5000
+    },
+    {
+      "kind": "hammer",
+      "x": 3,
+      "y": 3,
+      "at": 9500
+    },
+    {
+      "kind": "hammer",
+      "x": 2,
+      "y": 2,
+      "at": 11000
+    }
+  ],
+  "expectedOutcomes": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "invalid",
+    "invalid",
+    "invalid",
+    "invalid",
+    "invalid",
+    "invalid",
+    "invalid",
+    "invalid",
+    "ok",
+    "invalid",
+    "ok",
+    "invalid",
+    "invalid",
+    "invalid",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+  ],
+  "expectedHash": "98a13283"
+}

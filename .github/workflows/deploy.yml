@@ -1,0 +1,272 @@
+name: Deploy
+
+# Every push to `develop` (the default branch) deploys staging. Production deploys only from a
+# release on `main` (release.yml), or by hand.
+# Order matters: game owns CanvasDO, realtime binds to it and owns FanoutDO, gateway binds
+# to FanoutDO, admin binds to CanvasDO (ADR 0022) and FanoutDO (kick, ADR 0023) and calls
+# their newest methods. Deploying a script restarts its Durable Objects (game: CanvasDO
+# replays its log; realtime: every player's socket drops), so game and realtime ship only
+# when their code changed since the
+# commit recorded in the tag deployed/<env>/<script>. A missing tag means the script was
+# never deployed to that environment, so it ships. Gateway and admin hold no DOs and always
+# ship. Each script's tag is pushed right after its own deploy, so a later failure never
+# leaves a deployed script untagged (which would redeploy realtime on the re-run).
+# The admin area (its D1 migrations and its deploy) runs only in an environment where the
+# owner has set it up and set the ENVIRONMENT variable ADMIN_ENABLED to `true` (Settings →
+# Environments → <env> → Variables; not a repository variable, which every environment
+# would see). Until then it never blocks that environment's game and gateway deploys:
+# staging can have it while production does not. This job names its environment, so its
+# steps see that environment's variables in `vars` (the job-level `if` cannot).
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        options: [staging, production]
+        default: staging
+      realtime:
+        type: boolean
+        default: false
+        description: Force a realtime deploy even if unchanged (drops every player's WebSocket)
+  workflow_call:
+    inputs:
+      env:
+        type: string
+        required: true
+      realtime:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.env || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Skipped until the owner sets the repository variable DEPLOY_ENABLED to `true` (job-level
+    # conditions cannot see secrets or environment variables). The account id is the secret
+    # CLOUDFLARE_ACCOUNT_ID, so public run logs mask it (ADR 0046). Production, whether called
+    # by release.yml or dispatched by hand, also waits for the repository variable
+    # PRODUCTION_ENABLED (ADR 0036).
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      ((inputs.env || 'staging') != 'production' || vars.PRODUCTION_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.env || 'staging' }}
+    permissions:
+      contents: write # push the deployed/<env>/<script> tags
+    env:
+      TARGET: ${{ inputs.env || 'staging' }}
+      # Who runs this copy and where its donations and source go (ADR 0037): Actions variables,
+      # set on the repository (an environment's own value overrides it), never in the code.
+      # `pnpm verify` builds the client with them; a fork sets its own. The source defaults to
+      # the repository this run deploys from.
+      VITE_OPERATOR_NAME: ${{ vars.VITE_OPERATOR_NAME }}
+      VITE_OPERATOR_ADDRESS: ${{ vars.VITE_OPERATOR_ADDRESS }}
+      VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
+      VITE_SOURCE_URL: ${{ vars.VITE_SOURCE_URL || format('{0}/{1}', github.server_url, github.repository) }}
+      VITE_KOFI_URL: ${{ vars.VITE_KOFI_URL }}
+      VITE_SPONSORS: ${{ vars.VITE_SPONSORS }}
+      VITE_SPONSOR_INFO_URL: ${{ vars.VITE_SPONSOR_INFO_URL }}
+      # The client build fails unless the operator's name, address and a valid contact email
+      # are set (apps/client/vite.config.ts); local and CI builds leave it off.
+      VITE_REQUIRE_OPERATOR: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The legal pages name the operator and how to reach them. An early, plain message when a
+      # variable is missing; the build itself also refuses blank or invalid values.
+      - name: Check operator variables
+        run: |
+          missing=""
+          for name in VITE_OPERATOR_NAME VITE_OPERATOR_ADDRESS VITE_CONTACT_EMAIL; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Set the repository variables:$missing (docs/ops/setup.md, step 4.6)"
+            exit 1
+          fi
+      # DEPLOY_ENABLED lets the job run without seeing the secrets (ADR 0046); without the
+      # account id wrangler would guess the account from the token, so stop with a plain message.
+      - name: Check deploy secrets
+        env:
+          ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          missing=""
+          if [ -z "$ACCOUNT_ID" ]; then missing="$missing CLOUDFLARE_ACCOUNT_ID"; fi
+          if [ -z "$API_TOKEN" ]; then missing="$missing CLOUDFLARE_API_TOKEN"; fi
+          if [ -n "$missing" ]; then
+            echo "::error::Set the secrets:$missing (docs/ops/setup.md, step 4)"
+            exit 1
+          fi
+      # No Turbo cache here, unlike CI: restoring an entry can write any file in the repo, and
+      # any job on develop or main can save one, so what ships is always built and checked from scratch.
+      - run: pnpm verify
+
+      - id: plan
+        name: Decide which scripts ship
+        env:
+          FORCE_REALTIME: ${{ inputs.realtime }}
+          ADMIN: ${{ vars.ADMIN_ENABLED == 'true' }}
+        run: |
+          changed() { # usage: changed <script> <paths...>
+            local tag="deployed/$TARGET/$1"
+            shift
+            if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then echo true; return; fi
+            if git diff --quiet "$tag" HEAD -- "$@"; then echo false; else echo true; fi
+          }
+          game=$(changed game workers/game packages/core pnpm-lock.yaml)
+          realtime=$(changed realtime workers/realtime packages/core packages/protocol pnpm-lock.yaml)
+          if [ "$FORCE_REALTIME" = "true" ]; then realtime=true; fi
+          echo "game=$game" >> "$GITHUB_OUTPUT"
+          echo "realtime=$realtime" >> "$GITHUB_OUTPUT"
+          echo "Deploying to $TARGET: game=$game realtime=$realtime gateway=true admin=$ADMIN" >> "$GITHUB_STEP_SUMMARY"
+
+      # Every file in workers/gateway/migrations not yet recorded in the database's
+      # d1_migrations table, in order (ADR 0019). First, before any script ships: a failed
+      # migration then stops the run with nothing deployed, so a re-run does not deploy
+      # realtime (and drop every socket) a second time for want of a deployed/<env>/* tag.
+      # Migrations keep the running gateway working with the new schema (0006 rebuilds
+      # `reports` with a superset of its columns).
+      - name: Apply D1 migrations (accounts)
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/gateway
+          command: d1 migrations apply ACCOUNTS --remote --env ${{ env.TARGET }}
+
+      # The same for the standings database (ADR 0020), whose schema the game script owns
+      # (workers/game/migrations): the game writes it, the gateway reads it.
+      - name: Apply D1 migrations (standings)
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/game
+          command: d1 migrations apply STANDINGS --remote --env ${{ env.TARGET }}
+
+      # The admin area's own database (roles, config versions, audit log; ADR 0022), for the
+      # same reasons and in the same place: before any script ships. Only in an environment
+      # whose own ADMIN_ENABLED variable is `true` (its database exists there).
+      - name: Apply D1 migrations (admin)
+        if: vars.ADMIN_ENABLED == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/admin
+          command: d1 migrations apply ADMIN_DB --remote --env ${{ env.TARGET }}
+
+      - name: Deploy game
+        if: steps.plan.outputs.game == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/game
+          command: deploy --env ${{ env.TARGET }}
+
+      - name: Record deployed game
+        if: steps.plan.outputs.game == 'true'
+        env:
+          SCRIPT: game
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git tag -f "deployed/$TARGET/$SCRIPT" HEAD
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "+refs/tags/deployed/$TARGET/$SCRIPT"
+
+      # Fails the run when the game script has no ITEM_DRAW_KEY: without it no item is ever
+      # drawn (draws fail closed, ADR 0012), and nothing else would say so. Every run, whether or
+      # not game shipped (a secret can be deleted between deploys). After the game deploy, so a
+      # first deploy has a script to ask about, and before realtime and the gateway ship. A
+      # deploy never adds or removes secrets, so failing here leaves the game no worse than it
+      # was. Lists names only (tools/ci/check-secrets.ts); values never leave Cloudflare.
+      - name: Check game secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          pnpm exec wrangler secret list -c workers/game/wrangler.jsonc --env "$TARGET" --format json \
+            > "$RUNNER_TEMP/game-secrets.json"
+          pnpm exec tsx tools/ci/check-secrets.ts ITEM_DRAW_KEY < "$RUNNER_TEMP/game-secrets.json"
+
+      - name: Deploy realtime
+        if: steps.plan.outputs.realtime == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/realtime
+          command: deploy --env ${{ env.TARGET }}
+
+      - name: Record deployed realtime
+        if: steps.plan.outputs.realtime == 'true'
+        env:
+          SCRIPT: realtime
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git tag -f "deployed/$TARGET/$SCRIPT" HEAD
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "+refs/tags/deployed/$TARGET/$SCRIPT"
+
+      - name: Deploy gateway
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/gateway
+          command: deploy --env ${{ env.TARGET }}
+
+      - name: Record deployed gateway
+        env:
+          SCRIPT: gateway
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git tag -f "deployed/$TARGET/$SCRIPT" HEAD
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "+refs/tags/deployed/$TARGET/$SCRIPT"
+
+      # Last: it calls CanvasDO's admin methods, which the game deploy above brings.
+      - name: Deploy admin
+        if: vars.ADMIN_ENABLED == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: pnpm
+          workingDirectory: workers/admin
+          command: deploy --env ${{ env.TARGET }}
+
+      - name: Record deployed admin
+        if: vars.ADMIN_ENABLED == 'true'
+        env:
+          SCRIPT: admin
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git tag -f "deployed/$TARGET/$SCRIPT" HEAD
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "+refs/tags/deployed/$TARGET/$SCRIPT"

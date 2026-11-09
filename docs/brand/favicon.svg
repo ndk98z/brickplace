@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>BrickPlace</title>
+  <rect x="1" y="7" width="14" height="8" rx="2" fill="#ff6b3d"/>
+  <rect x="17" y="7" width="14" height="8" rx="2" fill="#3d7bff"/>
+  <rect x="1" y="17" width="6" height="8" rx="2" fill="#ffd23f"/>
+  <rect x="9" y="17" width="14" height="8" rx="2" fill="#2bb673"/>
+  <rect x="25" y="17" width="6" height="8" rx="2" fill="#ff6b3d"/>
+</svg>

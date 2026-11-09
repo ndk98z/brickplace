@@ -1,0 +1,31 @@
+packages:
+  - apps/*
+  - workers/*
+  - packages/*
+  - tools/ci
+  - tools/sim
+  - tools/bots
+
+# Refuse packages published less than a day ago (supply-chain hygiene).
+minimumReleaseAge: 1440
+
+# Older session worktrees symlinked node_modules from the main tree, which pnpm's pre-run
+# dependency check reads as stale and tries to purge. CI installs with --frozen-lockfile, so
+# the check adds nothing there.
+verifyDepsBeforeRun: false
+
+catalog:
+  "@biomejs/biome": ^2.6.0
+  "@cloudflare/vitest-plugin": ^1.4.0
+  "@types/node": ^24.0.0
+  tsx: ^4.23.0
+  turbo: ^2.11.0
+  typescript: ^7.0.0
+  vite: ^8.3.0
+  vitest: ^5.0.0
+  wrangler: ^4.140.0
+
+# Packages allowed to run install scripts (native binaries).
+allowBuilds:
+  esbuild: true
+  workerd: true

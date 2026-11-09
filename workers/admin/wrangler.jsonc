@@ -1,0 +1,140 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brickplace-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Issues groups errors and routes them to the owner's alerts (docs/ops/alerts.md); traces are
+  // cheap at admin volume, so every environment keeps them all. Dashboard edits are
+  // overwritten by deploys.
+  "observability": {
+    "enabled": true,
+    "issues": { "enabled": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1 }
+  },
+  // ADR 0022. Reachable only on its own hostname behind a Cloudflare Access application: no
+  // workers.dev address and no preview URLs. The owner adds the custom domain per environment
+  // (`routes` with `custom_domain: true`), one level under brickplace.app (ADR 0029, amended).
+  "workers_dev": false,
+  "preview_urls": false,
+  // Locked by default: a deploy without --env answers nothing but /healthz. Local dev unlocks
+  // it with ENVIRONMENT=dev in .dev.vars, which also replaces Access with a dev identity.
+  "vars": {
+    "ENVIRONMENT": "locked"
+  },
+  // Holds no Durable Objects: binds the game's CanvasDO for config versions, the read-only
+  // switch and season ends (ADR 0021, 0022), and realtime's FanoutDO to close a player's open
+  // sockets after a ban or a reset (FanoutDO.kick, ADR 0023). Bindings only, no migrations.
+  "durable_objects": {
+    "bindings": [
+      { "name": "CANVAS", "class_name": "CanvasDO", "script_name": "brickplace-game" },
+      { "name": "FANOUT", "class_name": "FanoutDO", "script_name": "brickplace-realtime" }
+    ]
+  },
+  // ADMIN_DB: roles, config versions and the audit log, in a database of their own so the
+  // public gateway cannot write them. ACCOUNTS: the gateway's accounts database, for the season
+  // registry (`seasons`, ADR 0021) and moderation (reports, bans, resets, teams; ADR 0023); its
+  // schema stays the gateway's (the deploy workflow applies it from there;
+  // `migrations_dir` is for local dev only). Ids are placeholders until the owner creates the
+  // databases; they differ so local dev keeps the two apart, and ACCOUNTS matches the
+  // gateway's.
+  "d1_databases": [
+    {
+      "binding": "ADMIN_DB",
+      "database_name": "brickplace-admin",
+      "database_id": "00000000-0000-0000-0000-000000000002",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "ACCOUNTS",
+      "database_name": "brickplace-accounts",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../gateway/migrations"
+    }
+  ],
+  // Sponsor logos (ADR 0038): a private bucket this Worker writes and the gateway serves.
+  // Local dev shares it with the gateway by name.
+  "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-dev" }],
+  "env": {
+    // Bindings and vars do not inherit into environments, so each one repeats them. The Access
+    // team domain (https://<team>.cloudflareaccess.com) and the application's AUD tag stay
+    // empty until the owner creates the Access application: the admin area is closed (503)
+    // until both are set.
+    "staging": {
+      // ADR 0029, amended 2026-11-03: on its custom domain behind a self-hosted Access
+      // application for that hostname (whose AUD tag is below), like production (ADR 0022). No
+      // workers.dev address and no preview URLs, written out: inheritable values an env block
+      // could otherwise reopen.
+      "routes": [{ "pattern": "admin-staging.brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ACCESS_TEAM_DOMAIN": "https://brickplace.cloudflareaccess.com",
+        "ACCESS_AUD": "10b3aa00381f793e34a6aaa5118a4ef94910fd3178d5b59402ca8332bf7c99aa"
+      },
+      "durable_objects": {
+        "bindings": [
+          { "name": "CANVAS", "class_name": "CanvasDO", "script_name": "brickplace-game-staging" },
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-staging"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "ADMIN_DB",
+          "database_name": "brickplace-admin-staging",
+          "database_id": "3ed128e7-c441-499a-92ea-a10534c9a020",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "ACCOUNTS",
+          "database_name": "brickplace-accounts-staging",
+          "database_id": "59c3d79f-aab6-4fc0-8f7d-4c252f6575df",
+          "migrations_dir": "../gateway/migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
+    },
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": ""
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CANVAS",
+            "class_name": "CanvasDO",
+            "script_name": "brickplace-game-production"
+          },
+          {
+            "name": "FANOUT",
+            "class_name": "FanoutDO",
+            "script_name": "brickplace-realtime-production"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "ADMIN_DB",
+          "database_name": "brickplace-admin-production",
+          "database_id": "00000000-0000-0000-0000-000000000002",
+          "migrations_dir": "migrations"
+        },
+        {
+          "binding": "ACCOUNTS",
+          "database_name": "brickplace-accounts-production",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "../gateway/migrations"
+        }
+      ],
+      "r2_buckets": [
+        { "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-production" }
+      ]
+    }
+  }
+}

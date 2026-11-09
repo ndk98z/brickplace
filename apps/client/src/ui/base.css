@@ -1,0 +1,409 @@
+/* The one layout system every page shares: the game, its screens, the timelapse and the
+   static pages (Terms, Privacy, Trademarks, Contributors). Design tokens, the content column,
+   the site header and footer, the logo and the button variants live here and nowhere else;
+   page stylesheets import this file first and only add what is theirs.
+   Toy-brick look from the approved design (ADR 0006): Fredoka for display, Inter for UI. */
+
+/* Self-hosted variable fonts, Latin subset, SIL OFL 1.1 (licences in public/fonts). */
+@font-face {
+  font-family: Fredoka;
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/fonts/fredoka-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Colour. */
+  --ink: #171b26;
+  --ink-2: #3b4256;
+  --muted: #5a6175;
+  --line: #e1e5ef;
+  --line-strong: #c9d0de;
+  --soft: #f3f5fa;
+  --map-bg: #e4e8f0;
+  --panel: #ffffff;
+  --accent: #ff6b3d;
+  --accent-soft: #fff3ee;
+  --accent-ink: #c93a17;
+  --blue-soft: #e5eeff;
+  --blue-ink: #1f4fb8;
+  --yellow: #ffd23f;
+  --yellow-soft: #fff8e1;
+  --warn-soft: #fff1a8;
+  --on-dark: #ffffff;
+  --on-dark-2: #d5dae5;
+  --on-dark-line: #6e7891;
+
+  /* Type: two families, one scale. */
+  --display: Fredoka, system-ui, sans-serif;
+  --ui: Inter, system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 16px;
+  --text-lead: 19px;
+  --title-sm: 22px;
+  --title-md: 26px;
+  --title-lg: 32px;
+  --title-xl: clamp(32px, 5vw, 44px);
+  --title-hero: clamp(44px, 8vw, 72px);
+
+  /* Spacing scale (4 px steps, then 8). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --space-9: 64px;
+
+  /* The content column every page section aligns to. */
+  --content-max: 1200px;
+  --gutter: 24px;
+  --header-h: 64px;
+
+  /* Shape and depth. */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-pill: 999px;
+  --shadow: 0 2px 8px rgba(23, 27, 38, 0.1);
+  --shadow-raised: 0 10px 30px rgba(23, 27, 38, 0.16);
+  --shadow-dialog: 0 30px 60px rgba(23, 27, 38, 0.3);
+  --press: 0 4px 0 var(--ink);
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--soft);
+  color: var(--ink);
+  font-family: var(--ui);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--blue-ink);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip {
+  position: absolute;
+  top: -48px;
+  left: var(--space-4);
+  z-index: 20;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--space-2);
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+.skip:focus {
+  top: var(--space-2);
+}
+
+/* ---- the content column ---- */
+
+.container {
+  width: 100%;
+  max-width: calc(var(--content-max) + 2 * var(--gutter));
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--gutter);
+  padding-left: var(--gutter);
+}
+
+/* ---- logo ---- */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.logo-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
+.logo-name {
+  font-family: var(--display);
+  font-size: var(--title-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---- site header (landing, timelapse, static pages) ---- */
+
+.site-header {
+  position: relative;
+  z-index: 2;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--header-h);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background: var(--soft);
+  color: var(--ink);
+}
+
+.nav-link[aria-current="page"] {
+  background: var(--soft);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---- buttons ---- */
+
+.btn,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn:disabled,
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-small {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.btn-large {
+  height: 52px;
+  padding: 0 22px;
+  border-radius: 14px;
+  font-size: var(--text-base);
+}
+
+.btn-dark {
+  background: var(--ink);
+  color: var(--on-dark);
+}
+
+.btn-light {
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.btn-outline {
+  border: 1.5px solid var(--ink);
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.btn-yellow {
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* On a dark surface. */
+.btn-ghost {
+  border: 1px solid var(--on-dark-line);
+  background: transparent;
+  color: var(--on-dark);
+}
+
+.btn-danger {
+  background: #b13e53;
+  color: var(--on-dark);
+}
+
+/* The one loud action of a screen: accent, pressed edge, display face. */
+.btn-primary {
+  height: 52px;
+  padding: 0 26px;
+  border-radius: 14px;
+  background: var(--accent);
+  box-shadow: var(--press);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 18px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-blue {
+  background: var(--blue-soft);
+  color: var(--blue-ink);
+}
+
+/* ---- footer (Landing design), on every page but the game ---- */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-size: var(--text-md);
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+  padding-top: var(--space-7);
+  padding-bottom: var(--space-7);
+}
+
+.site-footer-name {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}
+
+.site-footer-links a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.site-footer-links a:hover {
+  color: var(--accent-ink);
+}
+
+.site-footer-note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .site-footer-note {
+    margin-left: 0;
+  }
+
+  /* One row of header on a phone: tighter links, and the ones the logo already covers go. */
+  .site-header-inner {
+    gap: var(--space-2);
+  }
+
+  .site-nav {
+    flex-wrap: nowrap;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .site-nav .nav-link {
+    padding: 0 var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .nav-optional {
+    display: none;
+  }
+}
