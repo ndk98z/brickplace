@@ -433,20 +433,19 @@ describe('tile views', () => {
     // queued when it came, was applied in its place).
     const followsLatest = async () =>
       (await tilesFollowed()).map((a) => a.tiles?.join(',')).join() === '0,0,2,2';
-    let deadline = Date.now() + 10_000;
-    while (
-      (await latestWaits()).join() !== latest &&
-      !(await followsLatest()) &&
-      Date.now() < deadline
-    ) {
+    // One deadline for both waits, inside the 15 s test timeout, so a slow path ends on an
+    // assertion that says where it stopped.
+    const deadline = Date.now() + 10_000;
+    const arrived = async () => (await latestWaits()).join() === latest || (await followsLatest());
+    while (!(await arrived()) && Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 25));
     }
+    expect(await arrived()).toBe(true);
     // Back to the real interval, long passed since the first view: the latest one is applied.
     await fanout((instance) => {
       instance.viewMinMs = real;
       instance.scheduleViews(Date.now());
     });
-    deadline = Date.now() + 10_000;
     while (!(await followsLatest()) && Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 25));
     }
