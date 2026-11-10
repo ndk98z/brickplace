@@ -9,6 +9,9 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.6.0
       version: 2.6.2
+    '@cloudflare/vitest-plugin':
+      specifier: ^1.4.0
+      version: 1.6.0
     '@types/node':
       specifier: ^24.0.0
       version: 24.19.2
@@ -27,10 +30,9 @@ catalogs:
     vitest:
       specifier: ^5.0.0
       version: 5.0.5
-
-overrides:
-  undici@>=7.0.0 <7.30.1: ^7.30.2
-  zod@>=4.0.0 <4.6.6: ^4.6.7
+    wrangler:
+      specifier: ^4.140.0
+      version: 4.158.0
 
 importers:
 
