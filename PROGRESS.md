@@ -570,6 +570,8 @@ where we are.
 - [x] Owner (2026-11-10), on the archive: its `CLOUDFLARE_API_TOKEN` deleted and revoked in
   Cloudflare; `brickplace-archive` archived (private, read-only).
 - [x] README links staging (<https://staging.brickplace.app>) for anyone who wants to try it.
+- [ ] Owner: OpenSSF Best Practices badge (passing) at <https://www.bestpractices.dev>, then
+  its badge in the README (Scorecard's CII-Best-Practices check).
 - [ ] Trademark search for "BrickPlace" (USPTO, WIPO, Vietnam); buy brickplace.io / .gg.
 - [ ] Legal: Decree 147/2024 (G1 licence) and EU DSA obligations for the operator.
 
@@ -675,7 +677,11 @@ Production: none of it yet. The list below is what each environment needs.
   10 s; the number in `ops-private/`), checked: the requests past the limit got 429 on both
   paths and the API answered again 10 s later. With the workers.dev address off it cannot be
   skipped, and it will cover production's hostnames too. Production will use `brickplace.app`
-  and `tiles.brickplace.app`.
+  and `tiles.brickplace.app`. Until then the apex and `www` redirect to staging (owner,
+  2026-11-10): proxied placeholder `AAAA 100::` records and a Redirect Rule, 302 (never 301:
+  browsers keep a 301), path and query kept. Before production takes the apex, delete the
+  rule and both placeholder records: a Worker custom domain refuses a name that already has
+  a DNS record.
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see
