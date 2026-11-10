@@ -552,19 +552,22 @@ where we are.
 - [x] Content cleanup: no private design links or old PR links; account id as a secret.
 - [x] Owner: gitleaks over the full history (2026-11-09, 547 commits, default rules): no
   leaks. Workers Secrets stay as they are (ADR 0046).
-- [ ] Owner: a new `CLOUDFLARE_API_TOKEN` for the new repository and the archive's token
-  revoked (and `ANTHROPIC_API_KEY` the same way, if set).
-- [ ] Owner: squash `develop` into one signed-off commit; rename the GitHub repository to
-  `brickplace-archive` (private, archived, its Cloudflare secrets deleted, Actions off);
-  create the public `ndk98z/brickplace` and push the commit as `develop` and `main`. The
-  `deployed/<env>/<script>` tags stay in the archive, so the new repository's first deploy
-  ships every script (game and realtime too: CanvasDO replays its log and staging sockets
-  drop once). Harmless before season 1. Never push the archive's tags (they carry the old
-  history); to skip the redeploy, tag the squashed commit fresh as ADR 0046 says.
-- [ ] Owner, on the new repository: variables and secrets (docs/ops/setup.md, step 4,
-  `DEPLOY_ENABLED` last), environments with a required reviewer on `production`, rulesets,
-  private vulnerability reporting, secret scanning with push protection, Renovate, the
-  Claude GitHub App. CodeQL and Scorecard run on their own once it is public.
+- [x] Owner (2026-11-09): `develop` squashed into one signed-off commit; the old GitHub
+  repository renamed `brickplace-archive` (private, Actions off); the new `ndk98z/brickplace`
+  created and public, the commit pushed as `develop` and `main`. Game and realtime had not
+  changed since their last staging deploy, so `deployed/staging/{game,realtime}` were tagged
+  fresh on the squashed commit (never the archive's tags: they carry the old history).
+- [x] Owner, on the new repository (2026-11-09): variables, `CLOUDFLARE_ACCOUNT_ID` as a
+  secret, a new `CLOUDFLARE_API_TOKEN` in `staging`, environments (`production` with a
+  required reviewer), rulesets, labels, an allow-list of actions pinned by SHA, private
+  vulnerability reporting, secret scanning with push protection, Renovate, the Claude
+  GitHub App.
+- [ ] Owner: `DEPLOY_ENABLED=true`, then the first deploy from the new repository (check
+  `game=false realtime=false` and a masked account id in the log); after the first CI run,
+  set the rulesets' required checks to the GitHub Actions source. The first pushes ended in
+  `startup_failure` (a billing setting, since fixed).
+- [ ] Owner, on the archive: delete its `CLOUDFLARE_API_TOKEN` (environment `staging`),
+  revoke that token in Cloudflare, archive the repository.
 - [ ] Trademark search for "BrickPlace" (USPTO, WIPO, Vietnam); buy brickplace.io / .gg.
 - [ ] Legal: Decree 147/2024 (G1 licence) and EU DSA obligations for the operator.
 
