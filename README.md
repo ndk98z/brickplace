@@ -1,5 +1,8 @@
 # BrickPlace
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16514/badge)](https://www.bestpractices.dev/projects/16514)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ndk98z/brickplace/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ndk98z/brickplace)
+
 A long-running collaborative map game. Every minute you receive an item — a brick, a
 hammer or a shield — and use it on a shared map with everyone else online.
 

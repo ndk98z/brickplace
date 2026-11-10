@@ -570,8 +570,11 @@ where we are.
 - [x] Owner (2026-11-10), on the archive: its `CLOUDFLARE_API_TOKEN` deleted and revoked in
   Cloudflare; `brickplace-archive` archived (private, read-only).
 - [x] README links staging (<https://staging.brickplace.app>) for anyone who wants to try it.
-- [ ] Owner: OpenSSF Best Practices badge (passing) at <https://www.bestpractices.dev>, then
-  its badge in the README (Scorecard's CII-Best-Practices check).
+- [ ] Owner: OpenSSF Best Practices badge, project 16514
+  (<https://www.bestpractices.dev/projects/16514>). The form is filled in; the owner still has
+  to answer the two self-attestations (`know_secure_design`, `know_common_errors`) and
+  submit. The README already shows the badge (with the Scorecard badge), and it turns to
+  "passing" once the form is submitted.
 - [ ] Trademark search for "BrickPlace" (USPTO, WIPO, Vietnam); buy brickplace.io / .gg.
 - [ ] Legal: Decree 147/2024 (G1 licence) and EU DSA obligations for the operator.
 
