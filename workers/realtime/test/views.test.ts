@@ -396,27 +396,61 @@ describe('tile views', () => {
 
   it('applies only the latest of a burst of views sent before the first is applied', async () => {
     const watcher = await connect('c-burst', 'c-burst:fanout-0', null);
+    type Views = {
+      viewMinMs: number;
+      subscriptions: Map<WebSocket, { pending: unknown }>;
+      scheduleViews(at: number): void;
+    };
+    const fanout = (run: (instance: Views, state: DurableObjectState) => unknown) =>
+      runInDurableObject(watcher.stub, (instance: unknown, state) => run(instance as Views, state));
+    // The real interval is 250 ms...
+    const real = (await fanout((instance) => instance.viewMinMs)) as number;
+    expect(real).toBe(250);
+    // ...widened for the burst, which no machine outlasts then: on a loaded 2-CPU runner the
+    // 21 frames took longer than 250 ms to arrive, and a view from the middle was applied.
+    await fanout((instance) => {
+      instance.viewMinMs = 60_000;
+    });
     // Views swinging between two far corners: each one applied would bring tiles back.
     for (let i = 0; i < 20; i++) {
       if (i % 2 === 0) watcher.view(0, 600, 10, 10);
       else watcher.view(900, 900, 10, 10);
     }
     watcher.view(0, 0, 10, 10);
-    // Polled up to a generous deadline, not slept on: on a loaded 2-CPU runner the latest
-    // view can take well past its interval to be applied (AGENTS.md).
     const tilesFollowed = async () =>
-      (
-        await runInDurableObject(watcher.stub, (_, state) =>
-          state.getWebSockets().map((ws) => ws.deserializeAttachment() as { tiles?: number[] }),
-        )
-      ).map((a) => a.tiles?.join(','));
-    const deadline = Date.now() + 10_000;
-    let followed = await tilesFollowed();
-    while (followed.join() !== '0,0,2,2' && Date.now() < deadline) {
+      (await fanout((_, state) =>
+        state.getWebSockets().map((ws) => ws.deserializeAttachment() as { tiles?: number[] }),
+      )) as { tiles?: number[] }[];
+    const latestWaits = async () =>
+      (await fanout((instance, state) =>
+        state
+          .getWebSockets()
+          .map((ws) => JSON.stringify(instance.subscriptions.get(ws)?.pending ?? null)),
+      )) as string[];
+    const latest = JSON.stringify({ x: 0, y: 0, w: 10, h: 10 });
+    // Polled up to a generous deadline, not slept on (AGENTS.md): every frame of the burst has
+    // arrived once the latest view waits for the interval (or, if the first view was still
+    // queued when it came, was applied in its place).
+    const followsLatest = async () =>
+      (await tilesFollowed()).map((a) => a.tiles?.join(',')).join() === '0,0,2,2';
+    let deadline = Date.now() + 10_000;
+    while (
+      (await latestWaits()).join() !== latest &&
+      !(await followsLatest()) &&
+      Date.now() < deadline
+    ) {
       await new Promise((r) => setTimeout(r, 25));
-      followed = await tilesFollowed();
     }
-    expect(followed).toEqual(['0,0,2,2']);
+    // Back to the real interval, long passed since the first view: the latest one is applied.
+    await fanout((instance) => {
+      instance.viewMinMs = real;
+      instance.scheduleViews(Date.now());
+    });
+    deadline = Date.now() + 10_000;
+    while (!(await followsLatest()) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    expect((await tilesFollowed()).map((a) => a.tiles?.join(','))).toEqual(['0,0,2,2']);
     // At most two views applied (the first, then the latest once the interval ended): only
     // row 0's two tiles can have come back, never one Tile frame per view of the burst.
     expect(watcher.inbox.every((m) => m.type === 'tile' && m.ty === 0)).toBe(true);

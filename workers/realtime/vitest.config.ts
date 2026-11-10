@@ -5,7 +5,12 @@ export default defineConfig({
   // Several tests wait out real timers (2-3 s alone); under `pnpm verify` on a GitHub runner
   // every package's tests share two cores, and other packages ran 5-9x slower there than
   // alone, past the 5 s default.
-  test: { testTimeout: 15_000, setupFiles: ['./test/setup.ts'] },
+  test: {
+    testTimeout: 15_000,
+    setupFiles: ['./test/setup.ts'],
+    // A module cache per package (see packages/core/vitest.config.ts).
+    fsModuleCachePath: 'node_modules/.vitest-cache',
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },

@@ -470,6 +470,7 @@ export class FanoutDO extends DurableObject<Env> {
   /** Fields so tests can change them. */
   private verifyDelay = VERIFY_DELAY;
   private viewWriteMs = VIEW_WRITE_MS;
+  private viewMinMs = VIEW_MIN_MS;
   private gridGate = new SendGate(GRID_SENDS, MAX_WAITING_GRIDS, GRID_BYTES_PER_MS, JOIN_WAIT_MS);
   /** Overload signals (docs/ops/alerts.md), one per name per minute at most. */
   private readonly ops = new OpsSampler();
@@ -2377,9 +2378,9 @@ export class FanoutDO extends DurableObject<Env> {
     }
     const now = Date.now();
     const state = this.subscriptions.get(ws);
-    if (state && now - state.appliedAt < VIEW_MIN_MS) {
+    if (state && now - state.appliedAt < this.viewMinMs) {
       state.pending = rect;
-      this.scheduleViews(state.appliedAt + VIEW_MIN_MS);
+      this.scheduleViews(state.appliedAt + this.viewMinMs);
       return;
     }
     const entry = { rect };
@@ -2485,8 +2486,8 @@ export class FanoutDO extends DurableObject<Env> {
       const state = this.subscriptions.get(ws);
       if (!state) continue;
       if (state.pending) {
-        if (now - state.appliedAt >= VIEW_MIN_MS) this.applyView(ws, mirror, state.pending);
-        else this.scheduleViews(state.appliedAt + VIEW_MIN_MS);
+        if (now - state.appliedAt >= this.viewMinMs) this.applyView(ws, mirror, state.pending);
+        else this.scheduleViews(state.appliedAt + this.viewMinMs);
       } else if (state.owed.length > 0) {
         this.sendOwed(ws, state, mirror);
       }
