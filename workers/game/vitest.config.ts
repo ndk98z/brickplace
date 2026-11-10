@@ -21,7 +21,12 @@ export default defineConfig({
   // Most tests here build, checkpoint and restore 2048² grids (1-2 s each alone); with the
   // whole repo's suites running in parallel on a loaded machine they pass the 5 s default.
   // The few longer ones set their own timeouts.
-  test: { setupFiles: ['./test/setup.ts'], testTimeout: 15_000 },
+  test: {
+    setupFiles: ['./test/setup.ts'],
+    testTimeout: 15_000,
+    // A module cache per package (see packages/core/vitest.config.ts).
+    fsModuleCachePath: 'node_modules/.vitest-cache',
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath },

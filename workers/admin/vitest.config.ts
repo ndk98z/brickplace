@@ -46,7 +46,12 @@ const accountsMigrations = await readD1Migrations('../gateway/migrations');
 export default defineConfig({
   // Map tests take up to 1.5 s alone; on a loaded GitHub runner other packages ran 5-9x
   // slower than alone, past the 5 s default.
-  test: { setupFiles: ['./test/setup.ts'], testTimeout: 15_000 },
+  test: {
+    setupFiles: ['./test/setup.ts'],
+    testTimeout: 15_000,
+    // A module cache per package (see packages/core/vitest.config.ts).
+    fsModuleCachePath: 'node_modules/.vitest-cache',
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath },
