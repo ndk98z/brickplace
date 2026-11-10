@@ -3,7 +3,10 @@
 A long-running collaborative map game. Every minute you receive an item — a brick, a
 hammer or a shield — and use it on a shared map with everyone else online.
 
-> Status: pre-alpha, private. Not playable yet.
+> Status: pre-alpha. Season 1 has not started yet.
+>
+> **Try it on staging: <https://staging.brickplace.app>.** It is a test server that runs the
+> latest `develop`. Its map and accounts can be reset at any time.
 
 ## Quick start
 

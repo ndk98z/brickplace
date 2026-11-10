@@ -562,12 +562,14 @@ where we are.
   required reviewer), rulesets, labels, an allow-list of actions pinned by SHA, private
   vulnerability reporting, secret scanning with push protection, Renovate, the Claude
   GitHub App.
-- [ ] Owner: `DEPLOY_ENABLED=true`, then the first deploy from the new repository (check
-  `game=false realtime=false` and a masked account id in the log); after the first CI run,
-  set the rulesets' required checks to the GitHub Actions source. The first pushes ended in
-  `startup_failure` (a billing setting, since fixed).
-- [ ] Owner, on the archive: delete its `CLOUDFLARE_API_TOKEN` (environment `staging`),
-  revoke that token in Cloudflare, archive the repository.
+- [x] Owner (2026-11-10): `DEPLOY_ENABLED=true`. The first deploy from the new repository
+  (dispatched on `develop`) skipped game and realtime, shipped gateway and admin, and masked
+  the account id in the log. Staging answers `/healthz`. The rulesets' required checks now
+  come from GitHub Actions. The first pushes had ended in `startup_failure` because of a
+  billing setting, since fixed.
+- [x] Owner (2026-11-10), on the archive: its `CLOUDFLARE_API_TOKEN` deleted and revoked in
+  Cloudflare; `brickplace-archive` archived (private, read-only).
+- [x] README links staging (<https://staging.brickplace.app>) for anyone who wants to try it.
 - [ ] Trademark search for "BrickPlace" (USPTO, WIPO, Vietnam); buy brickplace.io / .gg.
 - [ ] Legal: Decree 147/2024 (G1 licence) and EU DSA obligations for the operator.
 
