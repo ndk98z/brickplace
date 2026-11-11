@@ -159,17 +159,17 @@
         {
           "binding": "ACCOUNTS",
           "database_name": "brickplace-accounts-production",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "1a10b2a7-9f32-4ccb-ac15-0e35a9b5d74b",
           "migrations_dir": "migrations"
         },
         {
           "binding": "STANDINGS",
           "database_name": "brickplace-standings-production",
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "6a027819-bf86-4248-8b37-549c8b523b9c",
           "migrations_dir": "../game/migrations"
         }
       ],
-      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "8b1f9ceaf7744c03a9c5a484aa7af353" }],
       "r2_buckets": [
         { "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-production" }
       ]

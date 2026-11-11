@@ -664,7 +664,9 @@ Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/o
 Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there: the
 `abuse-policy` and `trust-weights` KV keys, Google and Reddit sign-in, the admin area's first
 owner row, and alerts.
-Production: none of it yet. The list below is what each environment needs.
+Production: storage only so far (R2 buckets with the archive lock, D1 databases and the KV
+namespace, created 2026-11-11 in APAC like staging; ids in each `wrangler.jsonc`). The rest is
+in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
