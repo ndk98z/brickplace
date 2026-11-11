@@ -127,8 +127,10 @@ where we are.
 - [ ] Scale follow-ups (ADR 0028): set `FANOUT_SHARDS` on the gateway only once realtime runs
   this version everywhere (the game ↔ realtime binding deployed fine on staging from its first
   deploy, 2026-10-25, and on every deploy since; staging set to 3 on 2026-11-02, production
-  still open), and weigh lane A's per-address limits becoming per shard (how the
-  `abuse-policy` KV allows for it is set in the private ops repo); a resync past
+  10 on 2026-11-11 for a 20,000-player target, owner: about 2,000 sockets a shard, set before
+  its first deploy), and weigh lane A's per-address limits becoming per shard (how the
+  `abuse-policy` KV allows for it is set in the private ops repo; at 10 shards an address can
+  open up to 10 times the per-shard limit); a resync past
   262,144 changed cells streaming its records in chunks instead of closing the sockets
   (1012); the per-client budget that stretches the tick past 250 KB/min; a diff-latency run
   on staging; the Merger tier past ~250 shards.
@@ -375,7 +377,14 @@ where we are.
       all of them at once. Staging goes to three shards (`FANOUT_SHARDS` 3, owner, 2026-11-02;
       live once that commit deploys): 1,667 sockets a shard at the default cap of 5,000 (ADR
       0039), with room to about 2,500-3,000 a shard if the cap is raised to 7,500-9,000.
-      Production's count is set before launch from the expected peak. The gateway alone
+      Production's count is set before launch from the expected peak: 10 (owner, 2026-11-11,
+      for 20,000 players at once). Then the admin cap goes to about 21,000, not 20,000: players
+      reach shards by account hash, so shards fill a little unevenly (about ±50 at 2,000 each),
+      and a share of exactly 2,000 turns some away (4503) while the total is still under it.
+      Not measured at that size: the one CanvasDO taking every move of 20,000 players (the
+      runs above reached 4,900), ten shards' ticks, and 20,000 sockets coming back after a
+      realtime deploy. A bot run on staging at 10,000 or more, from several machines (one
+      address opening thousands of sockets gets throttled at the edge), comes first. The gateway alone
       deploys it: sockets already on shard 0 stay there until they reconnect, and shard 0's
       share drops to 1,667 at once (new players that hash to it may get 4503, or the seat of
       one idle for 10 minutes, until its count falls under 1,667). A Deploy with realtime
