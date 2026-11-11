@@ -299,11 +299,12 @@ Values in the gateway's env block of `wrangler.jsonc`, secrets with `secret put`
   them: [tools/bots/README.md](../../tools/bots/README.md).
 - **Staging for invited testers only** (ADR 0045, amended 2026-11-11), in Zero Trust → Access,
   in this order:
-  1. Settings → Authentication → add **One-time PIN**: testers are not members of the
+  1. **First**, in each admin application (`brickplace-admin-staging`,
+     `brickplace-admin-production`) → Login methods: allow **Cloudflare** only, not "all"
+     (today they allow all). Done after the next step instead, there is a window in which a
+     PIN emailed to an admin's address opens both admin areas without the account's login.
+  2. Settings → Authentication → add **One-time PIN**: testers are not members of the
      Cloudflare account, so they cannot use its Cloudflare login.
-  2. In each admin application (`brickplace-admin-staging`, `brickplace-admin-production`) →
-     Login methods: allow **Cloudflare** only, not "all". Otherwise a PIN emailed to an
-     admin's address satisfies the admins' email policy without the account's login.
   3. Policies → a reusable **Allow** policy for the testers' email addresses.
   4. Service credentials → Service Tokens → create one for bots and k6; keep its client id
      and secret on the laptop that runs them (`~/.brickplace-access-id`,
@@ -314,6 +315,7 @@ Values in the gateway's env block of `wrangler.jsonc`, secrets with `secret put`
      Cloudflare; a session of days, since a page whose session ends cannot reach `/api` or
      `/ws` until it reloads.
   6. Check, in a private window: the Access login comes first, then the game, sign-in and a
-     move. Without a token, `curl -sI https://staging.brickplace.app/healthz` answers a 302 to
-     `brickplace.cloudflareaccess.com`; with `-H "CF-Access-Client-Id: …" -H
-     "CF-Access-Client-Secret: …"` it answers 200 `ok`.
+     move. Without a token, `curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n'
+     https://staging.brickplace.app/healthz` prints a 302 to `brickplace.cloudflareaccess.com`;
+     `curl -s -H "CF-Access-Client-Id: …" -H "CF-Access-Client-Secret: …"` on the same URL
+     prints `ok`.

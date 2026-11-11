@@ -84,9 +84,9 @@ the gateway, a self-hosted Access application on `staging.brickplace.app` closes
   who a bot plays as; the token only gets it through Access.
 - Testers who are not members of the Cloudflare account cannot use the account's only login
   method today (Cloudflare's identity provider, account members only, ADR 0022 amended), so
-  the owner adds the one-time PIN by email for this application. The admin applications then
-  name their allowed identity providers explicitly (Cloudflare only), or an emailed PIN to an
-  admin's address would satisfy their email policy too.
+  the owner adds the one-time PIN by email for this application. **First** the admin
+  applications name their allowed identity providers explicitly (Cloudflare only): with "all"
+  allowed, an emailed PIN to an admin's address would satisfy their email policy too.
 - `tiles-staging.brickplace.app` stays public: map images, no play, and pages read it across
   origins without credentials (ADR 0018); putting it behind Access would need credentialed
   CORS for little gain.
