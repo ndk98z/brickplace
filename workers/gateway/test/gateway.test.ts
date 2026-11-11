@@ -241,8 +241,9 @@ describe('committed hosts (ADR 0045)', () => {
       expect(committed[name]?.customDomains, name).toEqual([host]);
       expect(committed[name]?.workersDev, name).toBe(false);
       expect(committed[name]?.previewUrls, name).toBe(false);
-      // A malformed TILES_ORIGIN (http, a path, a trailing slash) is dropped without an error
-      // and pages quietly stay on sockets, so hold it to a bare https origin.
+      // A non-https TILES_ORIGIN is dropped without an error and pages quietly stay on sockets
+      // (a path or trailing slash is only stripped); hold it to a bare https origin so the
+      // committed value is exactly what pages get.
       const tiles = secrets[name]?.vars.TILES_ORIGIN;
       expect(typeof tiles, name).toBe('string');
       const url = new URL(tiles as string);
