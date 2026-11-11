@@ -644,7 +644,8 @@ both ways, the rest through reports, and "Today" / "This week" rankings after la
 0020); archive pseudonyms, `archive/` locked indefinitely, and a team kept beside them only
 with at least 10 players in the season's log (ADR 0021, built); moderators may pull the
 emergency switches (cooldown ×2, read-only on; only owners reopen) with the identity
-provider's MFA and an 8-hour Access session for every admin (owner config), and a new season's
+provider's MFA and an 8-hour Access session for every admin (owner config; 24 hours since
+2026-11-11, ADR 0022 amended), and a new season's
 canvas copies the config versions in force (ADR 0022); moderators may ban permanently, only
 owners lift, and "sign out everywhere" kicks open sockets (ADR 0023); moderators roll back one
 player and lock areas while a rollback of every player's ops needs an owner, restored cells
@@ -667,7 +668,12 @@ Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases
 namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
 and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config;
 tiles on `tiles.brickplace.app` (custom domain, CORS for `https://brickplace.app` only, checked
-on a 404 since no manifest exists yet; the manifest Cache Rule already named it). Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
+on a 404 since no manifest exists yet; the manifest Cache Rule already named it); the admin
+area on `admin.brickplace.app` behind its own Access application (24-hour session, the shared
+reusable policy "Internal System"). Not deployed yet; KV values deferred (owner). **Admin MFA
+is open, on staging too:** the policy has no MFA rule and login is Cloudflare's identity
+provider, account members only; the owner settles the MFA before `ADMIN_ENABLED` goes on in
+production (ADR 0022, amended 2026-11-11). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
@@ -720,7 +726,7 @@ on a 404 since no manifest exists yet; the manifest Cache Rule already named it)
     the accounts database's ids in its `ACCOUNTS` entries, for the season registry), a
     hostname as the admin script's custom domain (staging: `admin-staging.brickplace.app`
     since 2026-11-03, before that its workers.dev address, ADR 0029 amended), a self-hosted
-    Access application on it whose policy requires the identity provider's MFA, with an 8-hour session (its AUD tag and the team domain into `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`), then the
+    Access application on it whose policy requires the identity provider's MFA (not yet in place, see above), with a 24-hour session (ADR 0022 amended 2026-11-11; its AUD tag and the team domain into `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`), then the
     **environment variable** `ADMIN_ENABLED=true` on that GitHub environment, not the
     repository (until then the deploy workflow skips, in that environment only, the
     admin migrations and deploy), and the first owner row inserted with `wrangler d1 execute`.

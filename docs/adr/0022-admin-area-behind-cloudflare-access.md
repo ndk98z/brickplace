@@ -1,7 +1,8 @@
 # 0022. Admin area behind Cloudflare Access: config versions, audit log, emergency switches
 
 - Status: accepted; on staging, `admin-staging.brickplace.app` since 2026-11-03 (its
-  workers.dev address before that, 0029 amended)
+  workers.dev address before that, 0029 amended); production configured for
+  `admin.brickplace.app` (2026-11-11, not deployed yet); amended 2026-11-11 (24-hour session)
 - Date: 2026-10-24 (proposed), 2026-10-25 (accepted)
 - Amends: 0008 (admin config and audit log live in D1, the canvas keeps a delivered copy)
 
@@ -30,7 +31,7 @@ rules in each checkpoint, so a rule a replay reads can change only through a log
      `exp`/`nbf`/`iat` within 30 s, `type` exactly `app`, and an email and `sub` present.
      Service tokens are refused: admins are people. WebCrypto only, no JWT library.
    - Team domain and AUD are plain vars per environment (`ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`,
-     empty in the repo). Neither is a secret: the AUD only names the application. Until both
+     empty until the owner creates that environment's Access application). Neither is a secret: the AUD only names the application. Until both
      are set the area answers 503. The top-level `ENVIRONMENT` is `locked` (501). As with the
      fake OAuth provider, `ENVIRONMENT=dev` (from `.dev.vars` only) replaces Access with a
      fixed local owner, `dev-admin@localhost`. Tests and the invariant hook keep every
@@ -221,8 +222,8 @@ rules in each checkpoint, so a rule a replay reads can change only through a log
      Allow policy for the admins' identities, kept in the dashboard or the private ops repo.
      The policy requires the identity provider's **MFA** (an Access authentication-method
      rule, e.g. `mfa`, or an identity provider that enforces it), and the application's
-     **session duration is 8 hours** (owner decision, 2026-10-25: moderators pull the emergency
-     switches, so every admin session is a strong one). Copy its AUD tag into `ACCESS_AUD` and
+     **session duration is 24 hours** (owner decision, 2026-11-11; 8 hours before, below).
+     Copy its AUD tag into `ACCESS_AUD` and
      the team domain into `ACCESS_TEAM_DOMAIN`.
   4. The first owner, from a terminal:
      `wrangler d1 execute brickplace-admin-<env> --remote --command "INSERT INTO admin_roles
@@ -247,7 +248,8 @@ rules in each checkpoint, so a rule a replay reads can change only through a log
   hides Reopen from moderators). A cooldown ×2 is undone by a new items version, which only
   owners make. These switches are why the next point holds for every admin.
 - **The admin area requires the identity provider's MFA and an 8-hour Access session** for
-  every admin, owners and moderators alike. This is Access configuration, owner-set (step 3 of
+  every admin, owners and moderators alike (the session is 24 hours since 2026-11-11, amended
+  below). This is Access configuration, owner-set (step 3 of
   the owner setup above), not code.
 - **A new season's canvas starts with the item config and growth rule in force** on the
   canvas players are on, copied when the season is created (built, §6, `config.carry`).
@@ -258,3 +260,24 @@ Still open (with a recommendation):
 - Shield lifetime and the shield cap as admin settings (ADR 0007 calls the lifetime
   admin-configurable): each needs a logged entry, so a core change, golden fixtures and an ADR.
   _Recommended: only when real season data asks for it._
+
+## Amended 2026-11-11: 24-hour Access sessions
+
+The owner keeps both admin applications, `brickplace-admin-staging` and
+`brickplace-admin-production`, at a **24-hour session** instead of the 8 hours decided above
+(staging's application has in fact run at 24 hours since it was created on 2026-11-03). Each
+environment has its own Access application, so its own AUD tag in `ACCESS_AUD`: a token for
+one is refused by the other's Worker. Both use the same reusable policy, "Internal System"
+(the admins' email addresses only), so an admin is added or removed in one place; roles stay
+per environment in each admin database.
+
+What it trades: a lost or shared device holds an admin session for up to a day instead of
+up to 8 hours. Removing someone still takes both: the role row, which shuts the API at once,
+and the policy, which stops new sessions; to end an open one early, revoke it in Zero Trust.
+
+The identity provider's MFA, decided above, is not in place yet: the policy has no MFA rule,
+on staging either. The account's only login method is Cloudflare's own identity provider
+(sign in with a Cloudflare account) restricted to the account's members, so every admin,
+moderators included, must be a member of the Cloudflare account. Whether that account login's
+two-factor counts as the MFA, or another identity provider that enforces MFA is added, is the
+owner's to settle **before `ADMIN_ENABLED` is set on production**, which opens the area.
