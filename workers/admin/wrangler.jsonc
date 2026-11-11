@@ -99,10 +99,16 @@
       "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
     },
     "production": {
+      // ADR 0022: on its custom domain behind its own self-hosted Access application (AUD tag
+      // below; same team and admins policy as staging's). No workers.dev address and no preview
+      // URLs, written out as on staging.
+      "routes": [{ "pattern": "admin.brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false,
       "vars": {
         "ENVIRONMENT": "production",
-        "ACCESS_TEAM_DOMAIN": "",
-        "ACCESS_AUD": ""
+        "ACCESS_TEAM_DOMAIN": "https://brickplace.cloudflareaccess.com",
+        "ACCESS_AUD": "f3e166397b1f1794741cc339e840ad118126e8ff25fdf41ce7050b74b7b1682b"
       },
       "durable_objects": {
         "bindings": [

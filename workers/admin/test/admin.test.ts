@@ -98,7 +98,7 @@ describe('admin Worker: who may enter', () => {
     expect(committed).toMatchObject({ staging: 'staging', production: 'production' });
   });
 
-  it('opens no workers.dev address or preview URLs anywhere, and staging on its domain only', () => {
+  it('opens no workers.dev address or preview URLs anywhere, and each env on its domain only', () => {
     type Routes = { workersDev: boolean | null; previewUrls: boolean | null; routes: string[] };
     const routes = (env as unknown as { COMMITTED_ROUTES: Record<string, Routes> })
       .COMMITTED_ROUTES;
@@ -113,6 +113,7 @@ describe('admin Worker: who may enter', () => {
       });
     }
     expect(routes.staging?.routes).toEqual(['admin-staging.brickplace.app (custom domain)']);
+    expect(routes.production?.routes).toEqual(['admin.brickplace.app (custom domain)']);
   });
 
   it('is closed until the Access application is configured', async () => {
