@@ -1,6 +1,7 @@
 # 0045. Staging's pages move to staging.brickplace.app; old addresses redirect
 
-- Status: proposed (amended the same evening: no workers.dev address, no redirect, below)
+- Status: proposed (amended the same evening: no workers.dev address, no redirect; amended
+  2026-11-11: staging behind Cloudflare Access, below)
 - Date: 2026-11-03
 - Relates to: 0015 (sign-in and `PUBLIC_ORIGIN`), 0019 (WAF rules per zone), 0029 and 0044
   (staging without a zone)
@@ -69,3 +70,29 @@ redirect for old links costs little.
 - The `/api` and `/auth` host check of ADR 0019 stays (it also guards a future second host).
 - Production writes nothing yet; when it gets its domain, it should write `workers_dev:
   false` the same way.
+
+## Amended 2026-11-11: staging behind Cloudflare Access, for invited testers
+
+The owner closes staging to the public: from now on a few invited testers use it, and the
+README no longer invites anyone to try it there. Since the custom domain is the only way to
+the gateway, a self-hosted Access application on `staging.brickplace.app` closes all of it
+(pages, `/api`, `/auth`, `/ws`) with no change to the Worker.
+- The application allows the admins' reusable policy and a reusable testers policy (their
+  email addresses), plus a Service Auth policy for one service token, which `tools/bots` and
+  the staging k6 scripts send as `CF-Access-Client-Id` / `CF-Access-Client-Secret`
+  (`CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`). The bot key (ADR 0034) still decides
+  who a bot plays as; the token only gets it through Access.
+- Testers who are not members of the Cloudflare account cannot use the account's only login
+  method today (Cloudflare's identity provider, account members only, ADR 0022 amended), so
+  the owner adds the one-time PIN by email for this application. The admin applications then
+  name their allowed identity providers explicitly (Cloudflare only), or an emailed PIN to an
+  admin's address would satisfy their email policy too.
+- `tiles-staging.brickplace.app` stays public: map images, no play, and pages read it across
+  origins without credentials (ADR 0018); putting it behind Access would need credentialed
+  CORS for little gain.
+- An Access session that ends under an open page makes `/api` calls and socket opens fail
+  (Access answers them with a redirect to its login page) until the tester reloads: a long
+  session (days) keeps that rare.
+- The gateway's own sign-in (OAuth, Turnstile, nicknames) is unchanged behind Access. Google
+  sign-in on staging still admits only the Google project's listed test users while it is in
+  Testing.

@@ -570,6 +570,7 @@ where we are.
 - [x] Owner (2026-11-10), on the archive: its `CLOUDFLARE_API_TOKEN` deleted and revoked in
   Cloudflare; `brickplace-archive` archived (private, read-only).
 - [x] README links staging (<https://staging.brickplace.app>) for anyone who wants to try it.
+  Since 2026-11-11 it says staging is for invited testers (ADR 0045, amended).
 - [ ] Owner: OpenSSF Best Practices badge, project 16514
   (<https://www.bestpractices.dev/projects/16514>). The form is filled in; the owner still has
   to answer the two self-attestations (`know_secure_design`, `know_common_errors`) and
@@ -663,7 +664,10 @@ map, with no client back-off (ADR 0032, built).
 
 Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/ops/setup.md).
 Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there:
-Reddit sign-in (on hold); alerts are for production only.
+Reddit sign-in (on hold); alerts are for production only. **Staging behind Cloudflare Access
+for invited testers** (owner, 2026-11-11; ADR 0045, amended): the repo side is in (bots and
+the staging k6 scripts send a service token, the timelapse sends its cookie to `/api/seasons`,
+README); the owner's Access setup is docs/ops/setup.md, step 8.
 Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
 namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
 and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config;
