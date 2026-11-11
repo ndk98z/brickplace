@@ -57,3 +57,6 @@ environment, and staging's only route to be that domain. After the deploy the ow
 the one-click workers.dev application. Until the new hostname answers (a few seconds after the
 deploy), staging's admin area is unreachable; nothing is exposed meanwhile, since the Worker
 refuses any request without a token for the new AUD.
+
+The session lengths above (8 hours) are superseded: both admin applications keep 24 hours
+(ADR 0022, amended 2026-11-11), and the new hostname's application was created at 24 hours.

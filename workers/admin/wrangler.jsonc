@@ -57,8 +57,8 @@
   "env": {
     // Bindings and vars do not inherit into environments, so each one repeats them. The Access
     // team domain (https://<team>.cloudflareaccess.com) and the application's AUD tag stay
-    // empty until the owner creates the Access application: the admin area is closed (503)
-    // until both are set.
+    // empty until the owner creates that environment's Access application: the admin area is
+    // closed (503) until both are set.
     "staging": {
       // ADR 0029, amended 2026-11-03: on its custom domain behind a self-hosted Access
       // application for that hostname (whose AUD tag is below), like production (ADR 0022). No

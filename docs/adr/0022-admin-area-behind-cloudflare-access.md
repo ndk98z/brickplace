@@ -31,7 +31,7 @@ rules in each checkpoint, so a rule a replay reads can change only through a log
      `exp`/`nbf`/`iat` within 30 s, `type` exactly `app`, and an email and `sub` present.
      Service tokens are refused: admins are people. WebCrypto only, no JWT library.
    - Team domain and AUD are plain vars per environment (`ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`,
-     empty in the repo). Neither is a secret: the AUD only names the application. Until both
+     empty until the owner creates that environment's Access application). Neither is a secret: the AUD only names the application. Until both
      are set the area answers 503. The top-level `ENVIRONMENT` is `locked` (501). As with the
      fake OAuth provider, `ENVIRONMENT=dev` (from `.dev.vars` only) replaces Access with a
      fixed local owner, `dev-admin@localhost`. Tests and the invariant hook keep every
@@ -264,15 +264,20 @@ Still open (with a recommendation):
 ## Amended 2026-11-11: 24-hour Access sessions
 
 The owner keeps both admin applications, `brickplace-admin-staging` and
-`brickplace-admin-production`, at a **24-hour session** instead of 8 hours. Each environment
-has its own Access application, so its own AUD tag in `ACCESS_AUD`: a token for one is refused
-by the other's Worker. Both use the same reusable "admins" policy, so an admin is added or
-removed in one place; roles stay per environment in each admin database.
+`brickplace-admin-production`, at a **24-hour session** instead of the 8 hours decided above
+(staging's application has in fact run at 24 hours since it was created on 2026-11-03). Each
+environment has its own Access application, so its own AUD tag in `ACCESS_AUD`: a token for
+one is refused by the other's Worker. Both use the same reusable policy, "Internal System"
+(the admins' email addresses only), so an admin is added or removed in one place; roles stay
+per environment in each admin database.
 
 What it trades: a lost or shared device holds an admin session for up to a day instead of
 up to 8 hours. Removing someone still takes both: the role row, which shuts the API at once,
 and the policy, which stops new sessions; to end an open one early, revoke it in Zero Trust.
 
-The identity provider's MFA, decided above, is not in place yet: the account's only login
-method is Cloudflare's one-time PIN by email. It stays the target, with an identity provider
-that enforces MFA added before the production admin area opens.
+The identity provider's MFA, decided above, is not in place yet: the policy has no MFA rule,
+on staging either. The account's only login method is Cloudflare's own identity provider
+(sign in with a Cloudflare account) restricted to the account's members, so every admin,
+moderators included, must be a member of the Cloudflare account. Whether that account login's
+two-factor counts as the MFA, or another identity provider that enforces MFA is added, is the
+owner's to settle **before `ADMIN_ENABLED` is set on production**, which opens the area.
