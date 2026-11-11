@@ -67,7 +67,8 @@ npx wrangler kv namespace create brickplace-moderation-<env>
   `brickplace.app` zone (ADR 0044; since 2026-11-03, after a day on the bucket's r2.dev URL,
   rate-limited and uncached, and a few on the stand-in `bp-cdn-staging.dropto.site`, removed
   with its Cache Rule the same evening).
-  Production's will be `tiles.brickplace.app`. Tiles and segments are edge-cached; Cloudflare
+  Production reads `https://tiles.brickplace.app` (custom domain since 2026-11-11, CORS
+  `https://brickplace.app` only). Tiles and segments are edge-cached; Cloudflare
   does not cache `.json`, so the zone has a Cache Rule for the manifest: Caching → Cache
   Rules, expression `(http.host in {"tiles.brickplace.app" "tiles-staging.brickplace.app"} and
   ends_with(http.request.uri.path, "/manifest.json"))`, eligible for cache, edge TTL "use
@@ -208,7 +209,9 @@ missing, and refuses outright for a Worker that does not exist yet. On a missing
    Redirect Rule (or narrow it to `www` → `https://brickplace.app`) and the apex's placeholder
    `AAAA 100::` record. Redirect Rules run before Workers, so a rule left on the apex keeps
    sending every request to staging; the deploy would not catch it, since wrangler in CI
-   replaces a DNS record already on the custom domain's name.
+   replaces a DNS record already on the custom domain's name. Done 2026-11-11: both records
+   deleted and the rule disabled (not deleted). Never re-enable it while it matches the apex;
+   to send `www` to the apex later, change both its host list and its target first.
 4. Check: `<PUBLIC_ORIGIN>/healthz` (before there is one, the workers.dev address) answers
    `ok` and the page loads in watch-only mode. The first page opened creates the canvas, so ship map
    changes before anyone opens it.

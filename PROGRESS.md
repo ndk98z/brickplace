@@ -691,8 +691,9 @@ on a 404 since no manifest exists yet; the manifest Cache Rule already named it)
   attached. Delete the apex placeholder record too (and `www`'s if the rule goes). The
   deploy itself would not stop on it: wrangler run outside a terminal (CI) replaces a DNS
   record already on a custom domain's name. Done 2026-11-11 (owner): both placeholder records
-  deleted and the rule disabled, so `www.brickplace.app` has no record for now; give it one
-  and a redirect to the apex before launch.
+  deleted and the rule disabled (not deleted: never re-enable it while it matches the apex),
+  so `www.brickplace.app` has no record for now; give it one and a redirect to the apex
+  before launch (the rule's host list and target both change).
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see

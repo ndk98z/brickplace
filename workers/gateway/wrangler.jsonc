@@ -129,9 +129,9 @@
     },
     "production": {
       // As staging: its custom domain only, so every request passes the zone's WAF rules (ADR
-      // 0045). Before the first deploy, delete the zone's apex→staging Redirect Rule (it runs
-      // before the Worker and would keep sending every request to staging) and the apex's
-      // placeholder record (docs/ops/setup.md, step 5.3).
+      // 0045). A zone Redirect Rule matching the apex runs before this Worker: keep the "Apex to
+      // staging" rule off or deleted, or it sends every request to staging (docs/ops/setup.md,
+      // step 5.3).
       "routes": [{ "pattern": "brickplace.app", "custom_domain": true }],
       "workers_dev": false,
       "preview_urls": false,
