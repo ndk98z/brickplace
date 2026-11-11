@@ -231,14 +231,17 @@ describe('committed hosts (ADR 0045)', () => {
       if (host.endsWith('.workers.dev')) expect(routes.workersDev, where).not.toBe(false);
       else expect(routes.customDomains, where).toContain(host);
     }
-    // Staging is reached on its custom domain only, so every request passes the zone's WAF
-    // rules (ADR 0045, amended). Written out, not left to wrangler's defaults. Production's
-    // workers.dev choice stays the owner's; it has no preview URLs either.
-    expect(committed.staging?.routes).toEqual(['staging.brickplace.app']);
-    expect(committed.staging?.customDomains).toEqual(['staging.brickplace.app']);
-    expect(committed.staging?.workersDev).toBe(false);
-    expect(committed.staging?.previewUrls).toBe(false);
-    expect(committed.production?.previewUrls).toBe(false);
+    // Staging and production are reached on their custom domains only, so every request passes
+    // the zone's WAF rules (ADR 0045, amended). Written out, not left to wrangler's defaults.
+    for (const [name, host] of [
+      ['staging', 'staging.brickplace.app'],
+      ['production', 'brickplace.app'],
+    ] as const) {
+      expect(committed[name]?.routes, name).toEqual([host]);
+      expect(committed[name]?.customDomains, name).toEqual([host]);
+      expect(committed[name]?.workersDev, name).toBe(false);
+      expect(committed[name]?.previewUrls, name).toBe(false);
+    }
   });
 });
 

@@ -17,19 +17,19 @@ Every `wrangler` command below runs from the repository root with
 
 ## Where each environment stands
 
-| Step                                 | Staging                                      | Production                                                |
-| ------------------------------------ | -------------------------------------------- | --------------------------------------------------------- |
-| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              | same account                                              |
-| 2. R2, D1, KV and the archive lock   | done                                         | done (2026-11-11, APAC like staging; ids in)              |
-| 3. KV values                         | done (all five keys, 2026-10-26)             | not yet                                                   |
-| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     | not yet: token in `production`; `PRODUCTION_ENABLED` last |
-| 5. Required secrets, first deploy    | done                                         | not yet                                                   |
-| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   | not yet                                                   |
-| 7. Admin area                        | done (`admin-staging.brickplace.app`)        | not yet (database created)                                |
-| 8. Alerts                            | skipped: production only (owner, 2026-10-26) | not yet; needed before public traffic                     |
-| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)        | not yet (`tiles.brickplace.app`)                          |
-| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03)  | not yet (`brickplace.app`; DNS placeholders)              |
-| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)  | covered by the same zone-wide rule                        |
+| Step                                 | Staging                                      | Production                                                  |
+| ------------------------------------ | -------------------------------------------- | ----------------------------------------------------------- |
+| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              | same account                                                |
+| 2. R2, D1, KV and the archive lock   | done                                         | done (2026-11-11, APAC like staging; ids in)                |
+| 3. KV values                         | done (all five keys, 2026-10-26)             | not yet                                                     |
+| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     | not yet: token in `production`; `PRODUCTION_ENABLED` last   |
+| 5. Required secrets, first deploy    | done                                         | secrets set (2026-11-11); first deploy not yet              |
+| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   | Discord and Google in config; Google consent in Testing     |
+| 7. Admin area                        | done (`admin-staging.brickplace.app`)        | not yet (database created)                                  |
+| 8. Alerts                            | skipped: production only (owner, 2026-10-26) | not yet; needed before public traffic                       |
+| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)        | not yet (`tiles.brickplace.app`)                            |
+| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03)  | in config; apex DNS placeholders go before the first deploy |
+| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)  | covered by the same zone-wide rule                          |
 
 Production: before it opens to the public, raise `abuse-policy`'s
 `opens.address` well above staging's (mobile carriers share one IPv4 among many players

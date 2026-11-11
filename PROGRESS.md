@@ -664,9 +664,10 @@ Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/o
 Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there: the
 `abuse-policy` and `trust-weights` KV keys, Google and Reddit sign-in, the admin area's first
 owner row, and alerts.
-Production: storage only so far (R2 buckets with the archive lock, D1 databases and the KV
-namespace, created 2026-11-11 in APAC like staging; ids in each `wrangler.jsonc`). The rest is
-in docs/ops/setup.md's table. The list below is what each environment needs.
+Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
+namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
+and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config.
+Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
@@ -761,8 +762,8 @@ in docs/ops/setup.md's table. The list below is what each environment needs.
 - OAuth apps: Google Cloud Console, Reddit (reddit.com/prefs/apps), Discord Developer Portal,
   each with the redirect URI `${PUBLIC_ORIGIN}/auth/{google|reddit|discord}/callback`, with
   credentials per environment (`docs/ops/setup.md`, step 6). Staging: Discord and Google done;
-  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: none
-  yet.
+  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: Discord and
+  Google (2026-11-11; Google's consent screen still in Testing), Reddit on hold.
 - Operator variables on the GitHub repository (ADR 0037, `docs/ops/setup.md` step 4.6):
   `VITE_OPERATOR_NAME`, `VITE_OPERATOR_ADDRESS`, `VITE_CONTACT_EMAIL` (deploys fail without
   them), `VITE_KOFI_URL` (Donate stays off without it).
