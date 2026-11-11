@@ -661,9 +661,8 @@ map, with no client back-off (ADR 0032, built).
 ## Blocked / needs the owner
 
 Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/ops/setup.md).
-Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there: the
-`abuse-policy` and `trust-weights` KV keys, Google and Reddit sign-in, the admin area's first
-owner row, and alerts.
+Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there:
+Reddit sign-in (on hold); alerts are for production only.
 Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
 namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
 and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config.
@@ -685,9 +684,12 @@ Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's
   skipped, and it will cover production's hostnames too. Production will use `brickplace.app`
   and `tiles.brickplace.app`. Until then the apex and `www` redirect to staging (owner,
   2026-11-10): proxied placeholder `AAAA 100::` records and a Redirect Rule, 302 (never 301:
-  browsers keep a 301), path and query kept. Before production takes the apex, delete the
-  rule and both placeholder records: a Worker custom domain refuses a name that already has
-  a DNS record.
+  browsers keep a 301), path and query kept. Before production's first deploy, delete the
+  rule, or narrow it to `www` and point it at `https://brickplace.app`: Redirect Rules run
+  before Workers, so it would keep sending the apex to staging even with the custom domain
+  attached. Delete the apex placeholder record too (and `www`'s if the rule goes). The
+  deploy itself would not stop on it: wrangler run outside a terminal (CI) replaces a DNS
+  record already on a custom domain's name.
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see

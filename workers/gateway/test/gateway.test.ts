@@ -207,7 +207,7 @@ describe('gateway', () => {
 });
 
 describe('committed hosts (ADR 0045)', () => {
-  it('serves PUBLIC_ORIGIN on a custom domain, and staging on nothing else', () => {
+  it('serves PUBLIC_ORIGIN on a custom domain, and staging and production on nothing else', () => {
     type Committed = {
       runWorkerFirst: string[] | boolean | null;
       workersDev: boolean | null;

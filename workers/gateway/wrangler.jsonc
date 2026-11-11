@@ -129,8 +129,9 @@
     },
     "production": {
       // As staging: its custom domain only, so every request passes the zone's WAF rules (ADR
-      // 0045). The apex must have no DNS record of its own when this first deploys: a Worker
-      // custom domain refuses a name that already has one (docs/ops/setup.md).
+      // 0045). Before the first deploy, delete the zone's apex→staging Redirect Rule (it runs
+      // before the Worker and would keep sending every request to staging) and the apex's
+      // placeholder record (docs/ops/setup.md, step 5.3).
       "routes": [{ "pattern": "brickplace.app", "custom_domain": true }],
       "workers_dev": false,
       "preview_urls": false,
