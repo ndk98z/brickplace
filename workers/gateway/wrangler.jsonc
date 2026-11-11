@@ -145,6 +145,14 @@
         "PUBLIC_ORIGIN": "https://brickplace.app",
         // https origin of the tiles bucket's custom domain; empty keeps watchers on sockets.
         "TILES_ORIGIN": "https://tiles.brickplace.app",
+        // FanoutDO shards (ADR 0028), sized for 20,000 players at once (owner, 2026-11-11):
+        // about 2,000 sockets a shard, where one shard was near its edge at 5,000 (PROGRESS.md),
+        // and a shard Cloudflare moves drops a tenth of the players. Set before the first deploy:
+        // a later change moves players between shards as they reconnect. If that deploy takes
+        // ADR 0028's fallback (game without its FANOUT binding), the same branch sets this to 1
+        // until the binding is back. The cap per shard is ceil(players-at-once cap / 10) (ADR
+        // 0039): raise the cap from its default 5,000 before launch (PROGRESS.md).
+        "FANOUT_SHARDS": "10",
         "GOOGLE_CLIENT_ID": "832780590955-vkbb4a7hhke3phdkgk9kadskrola1not.apps.googleusercontent.com",
         "REDDIT_CLIENT_ID": "",
         "DISCORD_CLIENT_ID": "1569987559705149470",
