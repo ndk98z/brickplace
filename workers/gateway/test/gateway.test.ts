@@ -133,6 +133,20 @@ describe('gateway', () => {
     expect(committed['']).toBe('locked');
   });
 
+  it('commits shard counts the gateway reads as written (ADR 0028)', () => {
+    // shardCount quietly treats a malformed value ("10 ", "100") as 1 shard.
+    const secrets = (
+      env as unknown as { COMMITTED_SECRETS: Record<string, { vars: Record<string, unknown> }> }
+    ).COMMITTED_SECRETS;
+    expect(secrets.staging?.vars.FANOUT_SHARDS).toBe('3');
+    expect(secrets.production?.vars.FANOUT_SHARDS).toBe('10');
+    for (const [name, { vars }] of Object.entries(secrets)) {
+      const value = vars.FANOUT_SHARDS;
+      if (value === undefined) continue;
+      expect(socket.shardCount(value as string), name).toBe(Number(value));
+    }
+  });
+
   it('requires, in every env block, the secrets that environment uses', () => {
     type Committed = { required: string[] | null; vars: Record<string, unknown> };
     const committed = (env as unknown as { COMMITTED_SECRETS: Record<string, Committed> })

@@ -128,7 +128,8 @@ where we are.
   this version everywhere (the game ↔ realtime binding deployed fine on staging from its first
   deploy, 2026-10-25, and on every deploy since; staging set to 3 on 2026-11-02, production
   10 on 2026-11-11 for a 20,000-player target, owner: about 2,000 sockets a shard, set before
-  its first deploy), and weigh lane A's per-address limits becoming per shard (how the
+  its first deploy, or 1 while ADR 0028's first-deploy fallback leaves the game without its
+  FANOUT binding), and weigh lane A's per-address limits becoming per shard (how the
   `abuse-policy` KV allows for it is set in the private ops repo; at 10 shards an address can
   open up to 10 times the per-shard limit); a resync past
   262,144 changed cells streaming its records in chunks instead of closing the sockets
@@ -377,18 +378,27 @@ where we are.
       all of them at once. Staging goes to three shards (`FANOUT_SHARDS` 3, owner, 2026-11-02;
       live once that commit deploys): 1,667 sockets a shard at the default cap of 5,000 (ADR
       0039), with room to about 2,500-3,000 a shard if the cap is raised to 7,500-9,000.
-      Production's count is set before launch from the expected peak: 10 (owner, 2026-11-11,
-      for 20,000 players at once). Then the admin cap goes to about 21,000, not 20,000: players
-      reach shards by account hash, so shards fill a little unevenly (about ±50 at 2,000 each),
-      and a share of exactly 2,000 turns some away (4503) while the total is still under it.
-      Not measured at that size: the one CanvasDO taking every move of 20,000 players (the
-      runs above reached 4,900), ten shards' ticks, and 20,000 sockets coming back after a
-      realtime deploy. A bot run on staging at 10,000 or more, from several machines (one
-      address opening thousands of sockets gets throttled at the edge), comes first. The gateway alone
+      Production's count is set before launch from the expected peak. The gateway alone
       deploys it: sockets already on shard 0 stay there until they reconnect, and shard 0's
       share drops to 1,667 at once (new players that hash to it may get 4503, or the seat of
       one idle for 10 minutes, until its count falls under 1,667). A Deploy with realtime
       ticked after the gateway is live moves everyone to their shard.
+    - Production: 10 shards (owner, 2026-11-11, for 20,000 players at once), about 2,000
+      sockets each, committed before its first deploy. If that deploy takes ADR 0028's
+      fallback (the game shipped without its FANOUT binding), the same branch sets
+      `FANOUT_SHARDS` to 1 until the binding is back.
+    - **Production's players-at-once cap starts at the default 5,000** (500 a shard, which
+      already turns players away below 5,000). Before launch traffic, raise it in the admin
+      area (or its D1 row while the production admin is off) to about 21,500. Players reach
+      shards by account hash, so shards fill unevenly: about ±40 a shard, the fullest of ten
+      typically 70 over its 2,000 and up to about 130. The cap's share is ceil(cap/10), and
+      players are refused (4503) once the fullest shard is full: at 21,000 (2,100 a shard)
+      that happens about one time in ten with 20,000 playing, at 21,500 rarely; the idle-seat
+      rule (4408 after 10 minutes) softens it. The cap admits up to 10 shares in total.
+    - Not measured at that size: the one CanvasDO taking every move of 20,000 players (the
+      runs above reached 4,900), ten shards' ticks, and 20,000 sockets coming back after a
+      realtime deploy. A bot run on staging at 10,000 or more, from several machines (one
+      address opening thousands of sockets gets throttled at the edge), comes first.
   - Open-area growth checked on staging, 2026-11-02 02:22-02:36 UTC: the open area grew from
     512² at 256,256 to 768² at 128,128 when filled cells reached 70% (66.6% by the tiles at
     02:28, past 70% by 02:31). The manifest's `stats.filled` is the share of blocked cells
