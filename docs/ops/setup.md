@@ -17,19 +17,19 @@ Every `wrangler` command below runs from the repository root with
 
 ## Where each environment stands
 
-| Step                                 | Staging                                      | Production                                                |
-| ------------------------------------ | -------------------------------------------- | --------------------------------------------------------- |
-| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              | same account                                              |
-| 2. R2, D1, KV and the archive lock   | done                                         | done (2026-11-11, APAC like staging; ids in)              |
-| 3. KV values                         | done (all five keys, 2026-10-26)             | not yet                                                   |
-| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     | not yet: token in `production`; `PRODUCTION_ENABLED` last |
-| 5. Required secrets, first deploy    | done                                         | not yet                                                   |
-| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   | not yet                                                   |
-| 7. Admin area                        | done (`admin-staging.brickplace.app`)        | not yet (database created)                                |
-| 8. Alerts                            | skipped: production only (owner, 2026-10-26) | not yet; needed before public traffic                     |
-| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)        | not yet (`tiles.brickplace.app`)                          |
-| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03)  | not yet (`brickplace.app`; DNS placeholders)              |
-| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)  | covered by the same zone-wide rule                        |
+| Step                                 | Staging                                      | Production                                                                |
+| ------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------- |
+| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              | same account                                                              |
+| 2. R2, D1, KV and the archive lock   | done                                         | done (2026-11-11, APAC like staging; ids in)                              |
+| 3. KV values                         | done (all five keys, 2026-10-26)             | not yet                                                                   |
+| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     | not yet: token in `production`; `PRODUCTION_ENABLED` last                 |
+| 5. Required secrets, first deploy    | done                                         | secrets set (2026-11-11); first deploy not yet                            |
+| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   | Discord and Google in config; Google consent in Testing                   |
+| 7. Admin area                        | done (`admin-staging.brickplace.app`)        | not yet (database created)                                                |
+| 8. Alerts                            | skipped: production only (owner, 2026-10-26) | not yet; needed before public traffic                                     |
+| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)        | done (`tiles.brickplace.app`, 2026-11-11; CORS `brickplace.app` only)     |
+| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03)  | in config; apex and `www` records deleted, Redirect Rule off (2026-11-11) |
+| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)  | covered by the same zone-wide rule                                        |
 
 Production: before it opens to the public, raise `abuse-policy`'s
 `opens.address` well above staging's (mobile carriers share one IPv4 among many players
@@ -67,7 +67,8 @@ npx wrangler kv namespace create brickplace-moderation-<env>
   `brickplace.app` zone (ADR 0044; since 2026-11-03, after a day on the bucket's r2.dev URL,
   rate-limited and uncached, and a few on the stand-in `bp-cdn-staging.dropto.site`, removed
   with its Cache Rule the same evening).
-  Production's will be `tiles.brickplace.app`. Tiles and segments are edge-cached; Cloudflare
+  Production reads `https://tiles.brickplace.app` (custom domain since 2026-11-11, CORS
+  `https://brickplace.app` only). Tiles and segments are edge-cached; Cloudflare
   does not cache `.json`, so the zone has a Cache Rule for the manifest: Caching → Cache
   Rules, expression `(http.host in {"tiles.brickplace.app" "tiles-staging.brickplace.app"} and
   ends_with(http.request.uri.path, "/manifest.json"))`, eligible for cache, edge TTL "use
@@ -88,7 +89,8 @@ npx wrangler kv namespace create brickplace-moderation-<env>
   manifest answers 200 with `Access-Control-Allow-Origin` for each allowed origin and none for
   another one (R2 sends it only to a request with an `Origin` header): `curl -sI -H 'Origin:
   https://staging.brickplace.app' '{origin}/c/canvas/manifest.json'`; only then set the
-  gateway's `TILES_ORIGIN`. A
+  gateway's `TILES_ORIGIN`. Before an environment's first deploy there is no manifest yet:
+  R2 sends the same header on its 404, so the check still holds (production's, 2026-11-11). A
   page given an origin it cannot read gives up only after three failed manifest reads: watchers
   see no map for about 12 s, and a player's socket opens 3 s late.
 - A bucket that stopped moving passes every check above. After a deploy, and before a measured
@@ -203,7 +205,13 @@ missing, and refuses outright for a Worker that does not exist yet. On a missing
 3. Push to `develop` (staging) or run the Deploy workflow from `main` (production, once
    `PRODUCTION_ENABLED` is `true`). It applies the accounts
    and standings migrations, then deploys game, realtime, gateway (and admin, step 7) and tags
-   each `deployed/<env>/<script>`.
+   each `deployed/<env>/<script>`. Production, first: delete the zone's "Apex to staging"
+   Redirect Rule (or narrow it to `www` → `https://brickplace.app`) and the apex's placeholder
+   `AAAA 100::` record. Redirect Rules run before Workers, so a rule left on the apex keeps
+   sending every request to staging; the deploy would not catch it, since wrangler in CI
+   replaces a DNS record already on the custom domain's name. Done 2026-11-11: both records
+   deleted and the rule disabled (not deleted). Never re-enable it while it matches the apex;
+   to send `www` to the apex later, change both its host list and its target first.
 4. Check: `<PUBLIC_ORIGIN>/healthz` (before there is one, the workers.dev address) answers
    `ok` and the page loads in watch-only mode. The first page opened creates the canvas, so ship map
    changes before anyone opens it.

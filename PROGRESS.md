@@ -661,12 +661,13 @@ map, with no client back-off (ADR 0032, built).
 ## Blocked / needs the owner
 
 Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/ops/setup.md).
-Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there: the
-`abuse-policy` and `trust-weights` KV keys, Google and Reddit sign-in, the admin area's first
-owner row, and alerts.
-Production: storage only so far (R2 buckets with the archive lock, D1 databases and the KV
-namespace, created 2026-11-11 in APAC like staging; ids in each `wrangler.jsonc`). The rest is
-in docs/ops/setup.md's table. The list below is what each environment needs.
+Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there:
+Reddit sign-in (on hold); alerts are for production only.
+Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
+namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
+and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config;
+tiles on `tiles.brickplace.app` (custom domain, CORS for `https://brickplace.app` only, checked
+on a 404 since no manifest exists yet; the manifest Cache Rule already named it). Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
@@ -684,9 +685,15 @@ in docs/ops/setup.md's table. The list below is what each environment needs.
   skipped, and it will cover production's hostnames too. Production will use `brickplace.app`
   and `tiles.brickplace.app`. Until then the apex and `www` redirect to staging (owner,
   2026-11-10): proxied placeholder `AAAA 100::` records and a Redirect Rule, 302 (never 301:
-  browsers keep a 301), path and query kept. Before production takes the apex, delete the
-  rule and both placeholder records: a Worker custom domain refuses a name that already has
-  a DNS record.
+  browsers keep a 301), path and query kept. Before production's first deploy, delete the
+  rule, or narrow it to `www` and point it at `https://brickplace.app`: Redirect Rules run
+  before Workers, so it would keep sending the apex to staging even with the custom domain
+  attached. Delete the apex placeholder record too (and `www`'s if the rule goes). The
+  deploy itself would not stop on it: wrangler run outside a terminal (CI) replaces a DNS
+  record already on a custom domain's name. Done 2026-11-11 (owner): both placeholder records
+  deleted and the rule disabled (not deleted: never re-enable it while it matches the apex),
+  so `www.brickplace.app` has no record for now; give it one and a redirect to the apex
+  before launch (the rule's host list and target both change).
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see
@@ -761,8 +768,8 @@ in docs/ops/setup.md's table. The list below is what each environment needs.
 - OAuth apps: Google Cloud Console, Reddit (reddit.com/prefs/apps), Discord Developer Portal,
   each with the redirect URI `${PUBLIC_ORIGIN}/auth/{google|reddit|discord}/callback`, with
   credentials per environment (`docs/ops/setup.md`, step 6). Staging: Discord and Google done;
-  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: none
-  yet.
+  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: Discord and
+  Google (2026-11-11; Google's consent screen still in Testing), Reddit on hold.
 - Operator variables on the GitHub repository (ADR 0037, `docs/ops/setup.md` step 4.6):
   `VITE_OPERATOR_NAME`, `VITE_OPERATOR_ADDRESS`, `VITE_CONTACT_EMAIL` (deploys fail without
   them), `VITE_KOFI_URL` (Donate stays off without it).

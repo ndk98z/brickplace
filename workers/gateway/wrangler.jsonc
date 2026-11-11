@@ -128,6 +128,12 @@
       "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
     },
     "production": {
+      // As staging: its custom domain only, so every request passes the zone's WAF rules (ADR
+      // 0045). A zone Redirect Rule matching the apex runs before this Worker: keep the "Apex to
+      // staging" rule off or deleted, or it sends every request to staging (docs/ops/setup.md,
+      // step 5.3).
+      "routes": [{ "pattern": "brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
       "preview_urls": false,
       "observability": {
         "enabled": true,
@@ -136,16 +142,23 @@
       },
       "vars": {
         "ENVIRONMENT": "production",
-        "PUBLIC_ORIGIN": "",
+        "PUBLIC_ORIGIN": "https://brickplace.app",
         // https origin of the tiles bucket's custom domain; empty keeps watchers on sockets.
-        "TILES_ORIGIN": "",
-        "GOOGLE_CLIENT_ID": "",
+        "TILES_ORIGIN": "https://tiles.brickplace.app",
+        "GOOGLE_CLIENT_ID": "832780590955-vkbb4a7hhke3phdkgk9kadskrola1not.apps.googleusercontent.com",
         "REDDIT_CLIENT_ID": "",
-        "DISCORD_CLIENT_ID": "",
-        "TURNSTILE_SITE_KEY": ""
+        "DISCORD_CLIENT_ID": "1569987559705149470",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAF8e5qxMBjuJblQh"
       },
-      // As in staging; add each OAuth secret here when its client id is filled in.
-      "secrets": { "required": ["SESSION_KEYS", "TURNSTILE_SECRET_KEY"] },
+      // As in staging: an OAuth secret is listed exactly when its client id above is set.
+      "secrets": {
+        "required": [
+          "SESSION_KEYS",
+          "TURNSTILE_SECRET_KEY",
+          "GOOGLE_CLIENT_SECRET",
+          "DISCORD_CLIENT_SECRET"
+        ]
+      },
       "durable_objects": {
         "bindings": [
           {
