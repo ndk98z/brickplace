@@ -8,8 +8,9 @@ hammer or a shield — and use it on a shared map with everyone else online.
 
 > Status: pre-alpha. Season 1 has not started yet.
 >
-> **Try it on staging: <https://staging.brickplace.app>.** It is a test server that runs the
-> latest `develop`. Its map and accounts can be reset at any time.
+> Staging (<https://staging.brickplace.app>) runs the latest `develop` for a few invited
+> testers; it asks for a Cloudflare Access login first. Its map and accounts can be reset at
+> any time. To try the game yourself, run it locally (below).
 
 ## Quick start
 

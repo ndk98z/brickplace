@@ -72,11 +72,19 @@ longer. Staging numbers are the ones that matter for launch.
 pnpm dev   # or the same wrangler dev command with --var FANOUT_SHARDS:4; stop it afterwards
 k6 run -e WATCHERS=100 -e SENDERS=10 -e DURATION=40 -e TILE=1,1 tools/loadtest/diff-latency.js
 
-# staging, in an agreed window: senders play as staging's bots (ADR 0034)
+# staging, in an agreed window: senders play as staging's bots (ADR 0034), and every socket
+# carries staging's Access service token (ADR 0045, amended)
 k6 run -e WS_URL=wss://staging.brickplace.app/ws \
   -e BOT_KEY="$(cat ~/.brickplace-bot-key)" -e SENDERS=150 -e DURATION=60 -e TILE=2,1 \
+  -e CF_ACCESS_CLIENT_ID="$(cat ~/.brickplace-access-id)" \
+  -e CF_ACCESS_CLIENT_SECRET="$(cat ~/.brickplace-access-secret)" \
   tools/loadtest/diff-latency.js
 ```
+
+Staging sits behind Cloudflare Access, so `diff-latency.js` and `reconnect-storm.js` take its
+service token as `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` (both or neither, `wss://`
+only); without it every staging socket is refused. `ws-smoke.js` plays as dev identities and
+is for local dev only.
 
 Locally each brick is sent by a fresh dev identity. With `BOT_KEY` each sender is one staging
 bot (numbers from `BOT_FIRST`, default 900000, clear of `tools/bots`' numbers) that keeps one

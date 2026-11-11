@@ -17,19 +17,19 @@ Every `wrangler` command below runs from the repository root with
 
 ## Where each environment stands
 
-| Step                                 | Staging                                      | Production                                                                                                 |
-| ------------------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)              | same account                                                                                               |
-| 2. R2, D1, KV and the archive lock   | done                                         | done (2026-11-11, APAC like staging; ids in)                                                               |
-| 3. KV values                         | done (all five keys, 2026-10-26)             | not yet                                                                                                    |
-| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)     | not yet: token in `production`; `PRODUCTION_ENABLED` last                                                  |
-| 5. Required secrets, first deploy    | done                                         | secrets set (2026-11-11); first deploy not yet                                                             |
-| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up   | Discord and Google in config; Google consent in Testing                                                    |
-| 7. Admin area                        | done (`admin-staging.brickplace.app`)        | Access app and config (`admin.brickplace.app`); MFA (ADR 0022 amended), then `ADMIN_ENABLED` and owner row |
-| 8. Alerts                            | skipped: production only (owner, 2026-10-26) | not yet; needed before public traffic                                                                      |
-| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)        | done (`tiles.brickplace.app`, 2026-11-11; CORS `brickplace.app` only)                                      |
-| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03)  | in config; apex and `www` records deleted, Redirect Rule off (2026-11-11)                                  |
-| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)  | covered by the same zone-wide rule                                                                         |
+| Step                                 | Staging                                                                 | Production                                                                                                 |
+| ------------------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1. Account and workers.dev subdomain | done (`brickplace.workers.dev`)                                         | same account                                                                                               |
+| 2. R2, D1, KV and the archive lock   | done                                                                    | done (2026-11-11, APAC like staging; ids in)                                                               |
+| 3. KV values                         | done (all five keys, 2026-10-26)                                        | not yet                                                                                                    |
+| 4. GitHub secrets, variable, env.    | done on the new public repo (2026-11-09)                                | not yet: token in `production`; `PRODUCTION_ENABLED` last                                                  |
+| 5. Required secrets, first deploy    | done                                                                    | secrets set (2026-11-11); first deploy not yet                                                             |
+| 6. Sign-in: origin, Turnstile, OAuth | Discord and Google done; Reddit not set up                              | Discord and Google in config; Google consent in Testing                                                    |
+| 7. Admin area                        | done (`admin-staging.brickplace.app`)                                   | Access app and config (`admin.brickplace.app`); MFA (ADR 0022 amended), then `ADMIN_ENABLED` and owner row |
+| 8. Alerts                            | skipped: production only (owner, 2026-10-26)                            | not yet; needed before public traffic                                                                      |
+| Tiles custom domain                  | done (`tiles-staging.brickplace.app`)                                   | done (`tiles.brickplace.app`, 2026-11-11; CORS `brickplace.app` only)                                      |
+| Pages on the zone                    | done (`staging.brickplace.app`, 2026-11-03); Access for testers: step 8 | in config; apex and `www` records deleted, Redirect Rule off (2026-11-11)                                  |
+| WAF rate limit on `/auth/`, `/api/`  | done (2026-11-03; number in `ops-private/`)                             | covered by the same zone-wide rule                                                                         |
 
 Production: before it opens to the public, raise `abuse-policy`'s
 `opens.address` well above staging's (mobile carriers share one IPv4 among many players
@@ -297,3 +297,25 @@ Values in the gateway's env block of `wrangler.jsonc`, secrets with `secret put`
   Bots have no per-address limit; the `unscored` trust tier and the bot signal weights of
   staging's `abuse-policy` (step 3) decide how many hammers and shields they may use. Running
   them: [tools/bots/README.md](../../tools/bots/README.md).
+- **Staging for invited testers only** (ADR 0045, amended 2026-11-11), in Zero Trust → Access,
+  in this order:
+  1. **First**, in each admin application (`brickplace-admin-staging`,
+     `brickplace-admin-production`) → Login methods: allow **Cloudflare** only, not "all"
+     (today they allow all). Done after the next step instead, there is a window in which a
+     PIN emailed to an admin's address opens both admin areas without the account's login.
+  2. Settings → Authentication → add **One-time PIN**: testers are not members of the
+     Cloudflare account, so they cannot use its Cloudflare login.
+  3. Policies → a reusable **Allow** policy for the testers' email addresses.
+  4. Service credentials → Service Tokens → create one for bots and k6; keep its client id
+     and secret on the laptop that runs them (`~/.brickplace-access-id`,
+     `~/.brickplace-access-secret`, mode 600).
+  5. Applications → a self-hosted application on `staging.brickplace.app` (not the tiles
+     name: it stays public): the admins' policy "Internal System" and the testers' policy,
+     plus a **Service Auth** policy for that token; login methods One-time PIN and
+     Cloudflare; a session of days, since a page whose session ends cannot reach `/api` or
+     `/ws` until it reloads.
+  6. Check, in a private window: the Access login comes first, then the game, sign-in and a
+     move. Without a token, `curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n'
+     https://staging.brickplace.app/healthz` prints a 302 to `brickplace.cloudflareaccess.com`;
+     `curl -s -H "CF-Access-Client-Id: …" -H "CF-Access-Client-Secret: …"` on the same URL
+     prints `ok`.
