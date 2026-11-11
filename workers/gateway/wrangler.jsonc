@@ -144,7 +144,7 @@
         "ENVIRONMENT": "production",
         "PUBLIC_ORIGIN": "https://brickplace.app",
         // https origin of the tiles bucket's custom domain; empty keeps watchers on sockets.
-        "TILES_ORIGIN": "",
+        "TILES_ORIGIN": "https://tiles.brickplace.app",
         "GOOGLE_CLIENT_ID": "832780590955-vkbb4a7hhke3phdkgk9kadskrola1not.apps.googleusercontent.com",
         "REDDIT_CLIENT_ID": "",
         "DISCORD_CLIENT_ID": "1569987559705149470",

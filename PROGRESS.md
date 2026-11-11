@@ -665,8 +665,9 @@ Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR
 Reddit sign-in (on hold); alerts are for production only.
 Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
 namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
-and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config.
-Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
+and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config;
+tiles on `tiles.brickplace.app` (custom domain, CORS for `https://brickplace.app` only, checked
+on a 404 since no manifest exists yet; the manifest Cache Rule already named it). Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
@@ -689,7 +690,9 @@ Not deployed yet; KV values deferred (owner). The rest is in docs/ops/setup.md's
   before Workers, so it would keep sending the apex to staging even with the custom domain
   attached. Delete the apex placeholder record too (and `www`'s if the rule goes). The
   deploy itself would not stop on it: wrangler run outside a terminal (CI) replaces a DNS
-  record already on a custom domain's name.
+  record already on a custom domain's name. Done 2026-11-11 (owner): both placeholder records
+  deleted and the rule disabled, so `www.brickplace.app` has no record for now; give it one
+  and a redirect to the apex before launch.
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see
