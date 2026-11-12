@@ -133,6 +133,20 @@ describe('gateway', () => {
     expect(committed['']).toBe('locked');
   });
 
+  it('commits shard counts the gateway reads as written (ADR 0028)', () => {
+    // shardCount quietly treats a malformed value ("10 ", "100") as 1 shard.
+    const secrets = (
+      env as unknown as { COMMITTED_SECRETS: Record<string, { vars: Record<string, unknown> }> }
+    ).COMMITTED_SECRETS;
+    expect(secrets.staging?.vars.FANOUT_SHARDS).toBe('3');
+    expect(secrets.production?.vars.FANOUT_SHARDS).toBe('10');
+    for (const [name, { vars }] of Object.entries(secrets)) {
+      const value = vars.FANOUT_SHARDS;
+      if (value === undefined) continue;
+      expect(socket.shardCount(value as string), name).toBe(Number(value));
+    }
+  });
+
   it('requires, in every env block, the secrets that environment uses', () => {
     type Committed = { required: string[] | null; vars: Record<string, unknown> };
     const committed = (env as unknown as { COMMITTED_SECRETS: Record<string, Committed> })
@@ -207,7 +221,7 @@ describe('gateway', () => {
 });
 
 describe('committed hosts (ADR 0045)', () => {
-  it('serves PUBLIC_ORIGIN on a custom domain, and staging on nothing else', () => {
+  it('serves PUBLIC_ORIGIN on a custom domain, and staging and production on nothing else', () => {
     type Committed = {
       runWorkerFirst: string[] | boolean | null;
       workersDev: boolean | null;
@@ -231,14 +245,25 @@ describe('committed hosts (ADR 0045)', () => {
       if (host.endsWith('.workers.dev')) expect(routes.workersDev, where).not.toBe(false);
       else expect(routes.customDomains, where).toContain(host);
     }
-    // Staging is reached on its custom domain only, so every request passes the zone's WAF
-    // rules (ADR 0045, amended). Written out, not left to wrangler's defaults. Production's
-    // workers.dev choice stays the owner's; it has no preview URLs either.
-    expect(committed.staging?.routes).toEqual(['staging.brickplace.app']);
-    expect(committed.staging?.customDomains).toEqual(['staging.brickplace.app']);
-    expect(committed.staging?.workersDev).toBe(false);
-    expect(committed.staging?.previewUrls).toBe(false);
-    expect(committed.production?.previewUrls).toBe(false);
+    // Staging and production are reached on their custom domains only, so every request passes
+    // the zone's WAF rules (ADR 0045, amended). Written out, not left to wrangler's defaults.
+    for (const [name, host] of [
+      ['staging', 'staging.brickplace.app'],
+      ['production', 'brickplace.app'],
+    ] as const) {
+      expect(committed[name]?.routes, name).toEqual([host]);
+      expect(committed[name]?.customDomains, name).toEqual([host]);
+      expect(committed[name]?.workersDev, name).toBe(false);
+      expect(committed[name]?.previewUrls, name).toBe(false);
+      // A non-https TILES_ORIGIN is dropped without an error and pages quietly stay on sockets
+      // (a path or trailing slash is only stripped); hold it to a bare https origin so the
+      // committed value is exactly what pages get.
+      const tiles = secrets[name]?.vars.TILES_ORIGIN;
+      expect(typeof tiles, name).toBe('string');
+      const url = new URL(tiles as string);
+      expect(url.protocol, name).toBe('https:');
+      expect(url.origin, name).toBe(tiles);
+    }
   });
 });
 

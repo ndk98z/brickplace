@@ -1,9 +1,16 @@
 # BrickPlace
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16514/badge)](https://www.bestpractices.dev/projects/16514)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ndk98z/brickplace/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ndk98z/brickplace)
+
 A long-running collaborative map game. Every minute you receive an item — a brick, a
 hammer or a shield — and use it on a shared map with everyone else online.
 
-> Status: pre-alpha, private. Not playable yet.
+> Status: pre-alpha. Season 1 has not started yet.
+>
+> Staging (<https://staging.brickplace.app>) runs the latest `develop` for a few invited
+> testers; it asks for a Cloudflare Access login first. Its map and accounts can be reset at
+> any time. To try the game yourself, run it locally (below).
 
 ## Quick start
 

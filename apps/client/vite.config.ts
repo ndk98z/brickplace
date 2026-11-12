@@ -52,5 +52,7 @@ export default defineConfig(({ mode }) => ({
     // Map-store and ghost tests replay core ops over whole tiles (under 1 s alone); under
     // `pnpm verify` on a GitHub runner they have passed the 5 s default (9.1 s seen).
     testTimeout: 30_000,
+    // A module cache per package (see packages/core/vitest.config.ts).
+    fsModuleCachePath: 'node_modules/.vitest-cache',
   },
 }));

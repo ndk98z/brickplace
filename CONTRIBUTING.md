@@ -17,6 +17,9 @@ also what AI coding agents read.
 ## Making a change
 
 - One concern per PR. Open an issue first for anything bigger than a bug fix.
+- New behaviour comes with tests, and a bug fix with a test that fails without it.
+  `pnpm verify` (lint, typecheck, every test, Worker bundles) must pass; CI runs exactly it
+  on every PR.
 - Game rules live only in `packages/core`. A rule change needs a golden fixture update
   (`pnpm golden:update`, then review the result by hand) and an ADR in `docs/adr/`.
 - Wire protocol changes must stay backward compatible or bump `PROTOCOL_VERSION`.

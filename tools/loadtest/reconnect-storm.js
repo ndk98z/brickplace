@@ -31,6 +31,9 @@
 //                 as pages before ADR 0040
 //   CANVAS        the canvas named with `since` (default: the season's, from /api/me next to
 //                 WS_URL, as a page reads it)
+//   CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET
+//                 staging's Cloudflare Access service token (ADR 0045, amended), sent on
+//                 every socket and on /api/me; both or neither, wss:// only
 import { sleep } from 'k6';
 import http from 'k6/http';
 import { Counter, Rate, Trend } from 'k6/metrics';
@@ -44,6 +47,19 @@ const DURATION = Number(__ENV.DURATION ?? 60) * 1000;
 const MODE = __ENV.MODE || 'client';
 const ACK_TIMEOUT = Number(__ENV.ACK_TIMEOUT ?? 10) * 1000;
 const RESUME = (__ENV.RESUME ?? '1') === '1';
+const ACCESS = accessHeaders();
+
+/** Staging's Access service token as headers (none without the variables). */
+function accessHeaders() {
+  const id = (__ENV.CF_ACCESS_CLIENT_ID || '').trim();
+  const secret = (__ENV.CF_ACCESS_CLIENT_SECRET || '').trim();
+  if (!id && !secret) return {};
+  if (!id || !secret) {
+    throw new Error('set both CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET, or neither');
+  }
+  if (!WS_URL.startsWith('wss://')) throw new Error('the Access token goes over wss:// only');
+  return { 'CF-Access-Client-Id': id, 'CF-Access-Client-Secret': secret };
+}
 
 // The client's reconnect schedule (connection.ts DEFAULT_BACKOFF, FIRST_RETRY_SPREAD, the
 // 0.5-1.5 jitter of later steps, the 1013 jump, stable time).
@@ -108,7 +124,8 @@ function findCanvas() {
   if (!RESUME) return null;
   if (__ENV.CANVAS) return __ENV.CANVAS;
   const url = WS_URL.replace(/^ws(s?):\/\/([^/?#]+).*$/, 'http$1://$2/api/me');
-  const res = http.get(url);
+  // Access redirects a request without a valid token to its login page: follow nothing.
+  const res = http.get(url, { headers: ACCESS, redirects: 0 });
   if (res.status !== 200) {
     console.warn(`${url}: HTTP ${res.status}; reconnecting without since`);
     return null;
@@ -172,7 +189,7 @@ export default function (data) {
         ? `${base}&since=${heldSeq}&canvas=${encodeURIComponent(data.canvas)}`
         : base;
     try {
-      res = ws.connect(url, null, (socket) => {
+      res = ws.connect(url, { headers: ACCESS }, (socket) => {
         let ready = false;
         /** Seq of this socket's map frames before the config frame, bytes and a Resume frame. */
         let gridSeq = -1;

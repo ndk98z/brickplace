@@ -128,6 +128,12 @@
       "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
     },
     "production": {
+      // As staging: its custom domain only, so every request passes the zone's WAF rules (ADR
+      // 0045). A zone Redirect Rule matching the apex runs before this Worker: keep the "Apex to
+      // staging" rule off or deleted, or it sends every request to staging (docs/ops/setup.md,
+      // step 5.3).
+      "routes": [{ "pattern": "brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
       "preview_urls": false,
       "observability": {
         "enabled": true,
@@ -136,16 +142,31 @@
       },
       "vars": {
         "ENVIRONMENT": "production",
-        "PUBLIC_ORIGIN": "",
+        "PUBLIC_ORIGIN": "https://brickplace.app",
         // https origin of the tiles bucket's custom domain; empty keeps watchers on sockets.
-        "TILES_ORIGIN": "",
-        "GOOGLE_CLIENT_ID": "",
+        "TILES_ORIGIN": "https://tiles.brickplace.app",
+        // FanoutDO shards (ADR 0028), sized for 20,000 players at once (owner, 2026-11-11):
+        // about 2,000 sockets a shard, where one shard was near its edge at 5,000 (PROGRESS.md),
+        // and a shard Cloudflare moves drops a tenth of the players. Set before the first deploy:
+        // a later change moves players between shards as they reconnect. If that deploy takes
+        // ADR 0028's fallback (game without its FANOUT binding), the same branch sets this to 1
+        // until the binding is back. The cap per shard is ceil(players-at-once cap / 10) (ADR
+        // 0039): raise the cap from its default 5,000 before launch (PROGRESS.md).
+        "FANOUT_SHARDS": "10",
+        "GOOGLE_CLIENT_ID": "832780590955-vkbb4a7hhke3phdkgk9kadskrola1not.apps.googleusercontent.com",
         "REDDIT_CLIENT_ID": "",
-        "DISCORD_CLIENT_ID": "",
-        "TURNSTILE_SITE_KEY": ""
+        "DISCORD_CLIENT_ID": "1569987559705149470",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAF8e5qxMBjuJblQh"
       },
-      // As in staging; add each OAuth secret here when its client id is filled in.
-      "secrets": { "required": ["SESSION_KEYS", "TURNSTILE_SECRET_KEY"] },
+      // As in staging: an OAuth secret is listed exactly when its client id above is set.
+      "secrets": {
+        "required": [
+          "SESSION_KEYS",
+          "TURNSTILE_SECRET_KEY",
+          "GOOGLE_CLIENT_SECRET",
+          "DISCORD_CLIENT_SECRET"
+        ]
+      },
       "durable_objects": {
         "bindings": [
           {
@@ -159,17 +180,17 @@
         {
           "binding": "ACCOUNTS",
           "database_name": "brickplace-accounts-production",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "1a10b2a7-9f32-4ccb-ac15-0e35a9b5d74b",
           "migrations_dir": "migrations"
         },
         {
           "binding": "STANDINGS",
           "database_name": "brickplace-standings-production",
-          "database_id": "00000000-0000-0000-0000-000000000001",
+          "database_id": "6a027819-bf86-4248-8b37-549c8b523b9c",
           "migrations_dir": "../game/migrations"
         }
       ],
-      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }],
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "8b1f9ceaf7744c03a9c5a484aa7af353" }],
       "r2_buckets": [
         { "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-production" }
       ]

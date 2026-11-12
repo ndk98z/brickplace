@@ -4,6 +4,7 @@
   "timezone": "Asia/Ho_Chi_Minh",
   "schedule": ["before 6am on monday"],
   "minimumReleaseAge": "3 days",
+  "major": { "dependencyDashboardApproval": true },
   "commitBody": "Signed-off-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
   "packageRules": [
     {

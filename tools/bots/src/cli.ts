@@ -1,15 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { accessHeaders, connectWith, fetchJsonWith } from './access.ts';
 import type { Identity } from './bot.ts';
 import { type ImagePlan, Run } from './driver.ts';
 import { PLAYER_KINDS, type PlayerKind } from './player.ts';
 import { decodePng } from './png.ts';
+import { nodeConnect } from './socket.ts';
 
 const USAGE = `Usage: pnpm --filter @brickplace/bots start [options]
 
 Bots that play the game over WebSocket (ADR 0034). Local dev (pnpm dev, ENVIRONMENT=dev) needs
 no key: bots play under dev ids. Staging needs the gateway's BOT_KEY, from the BOT_KEY
-environment variable or --key-file; without it bots only watch there.
+environment variable or --key-file; without it bots only watch there. Staging also sits behind
+Cloudflare Access: set CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET to its service token.
 
   --url URL        game socket (default ws://localhost:8787/ws; staging:
                    wss://staging.brickplace.app/ws)
@@ -94,6 +97,15 @@ if (!key && !local) {
 if (key && !local && parsed.protocol !== 'wss:') fail('the bot key goes over wss:// only');
 const identity: Identity = key ? { key } : { dev: true };
 
+let access: Record<string, string>;
+try {
+  access = accessHeaders(process.env);
+} catch (error) {
+  fail((error as Error).message);
+}
+const hasAccess = Object.keys(access).length > 0;
+if (hasAccess && parsed.protocol !== 'wss:') fail('the Access token goes over wss:// only');
+
 const mixParts = (values.mix ?? '40/40/10/10').split('/').map(Number);
 if (
   mixParts.length !== PLAYER_KINDS.length ||
@@ -132,23 +144,29 @@ if (key && first + bots + spare - 1 > 999_999) {
   fail('bot numbers stop at 999999: lower --first, --bots or --spare');
 }
 
-const run = new Run({
-  url,
-  identity,
-  bots,
-  first,
-  spare,
-  mix,
-  image,
-  arts: whole('arts', values.arts, image ? 0 : 6),
-  artSize: whole('art-size', values['art-size'], 32, 4),
-  minutes: whole('minutes', values.minutes, 60, 1),
-  rate: whole('rate', values.rate, 4, 1),
-  every: whole('every', values.every, 30, 1),
-  resume: !values['whole-map'],
-  cdn: !values['no-cdn'],
-  seed: whole('seed', values.seed, Date.now() % 0x7fffffff),
-});
+const run = new Run(
+  {
+    url,
+    identity,
+    bots,
+    first,
+    spare,
+    mix,
+    image,
+    arts: whole('arts', values.arts, image ? 0 : 6),
+    artSize: whole('art-size', values['art-size'], 32, 4),
+    minutes: whole('minutes', values.minutes, 60, 1),
+    rate: whole('rate', values.rate, 4, 1),
+    every: whole('every', values.every, 30, 1),
+    resume: !values['whole-map'],
+    cdn: !values['no-cdn'],
+    seed: whole('seed', values.seed, Date.now() % 0x7fffffff),
+  },
+  // The token goes to the game's host only: the map socket, every bot's socket and /api/me.
+  connectWith(nodeConnect, access),
+  console.log,
+  fetchJsonWith(access),
+);
 
 process.once('SIGINT', () => {
   console.log('stopping (Ctrl-C again to quit at once)');

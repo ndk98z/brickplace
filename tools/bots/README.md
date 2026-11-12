@@ -9,10 +9,19 @@ on staging only.
 # Local: pnpm dev in another terminal (stop it afterwards); no key needed.
 pnpm --filter @brickplace/bots start --bots 20 --minutes 5
 
-# Staging: the key from docs/ops/setup.md, step 8.
-BOT_KEY=$(cat ~/.brickplace-bot-key) pnpm --filter @brickplace/bots start \
+# Staging: the key from docs/ops/setup.md, step 8, and staging's Access service token.
+BOT_KEY=$(cat ~/.brickplace-bot-key) \
+CF_ACCESS_CLIENT_ID=$(cat ~/.brickplace-access-id) \
+CF_ACCESS_CLIENT_SECRET=$(cat ~/.brickplace-access-secret) \
+pnpm --filter @brickplace/bots start \
   --url wss://staging.brickplace.app/ws --bots 200 --minutes 60
 ```
+
+Staging sits behind Cloudflare Access, invited testers only (ADR 0045, amended 2026-11-11).
+Bots get through with its service token: `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`
+(both or neither, `wss://` only) go on the map socket, every bot's socket and `/api/me`, never
+on the CDN, which stays public. Without them every staging request ends at Access's login
+page: the run waits for a map that never comes and stops after a minute.
 
 `--help` lists every option. Ctrl-C stops the run cleanly and prints the summary.
 

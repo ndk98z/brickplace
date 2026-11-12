@@ -127,8 +127,11 @@ where we are.
 - [ ] Scale follow-ups (ADR 0028): set `FANOUT_SHARDS` on the gateway only once realtime runs
   this version everywhere (the game ↔ realtime binding deployed fine on staging from its first
   deploy, 2026-10-25, and on every deploy since; staging set to 3 on 2026-11-02, production
-  still open), and weigh lane A's per-address limits becoming per shard (how the
-  `abuse-policy` KV allows for it is set in the private ops repo); a resync past
+  10 on 2026-11-11 for a 20,000-player target, owner: about 2,000 sockets a shard, set before
+  its first deploy, or 1 while ADR 0028's first-deploy fallback leaves the game without its
+  FANOUT binding), and weigh lane A's per-address limits becoming per shard (how the
+  `abuse-policy` KV allows for it is set in the private ops repo; at 10 shards an address can
+  open up to 10 times the per-shard limit); a resync past
   262,144 changed cells streaming its records in chunks instead of closing the sockets
   (1012); the per-client budget that stretches the tick past 250 KB/min; a diff-latency run
   on staging; the Merger tier past ~250 shards.
@@ -380,6 +383,22 @@ where we are.
       share drops to 1,667 at once (new players that hash to it may get 4503, or the seat of
       one idle for 10 minutes, until its count falls under 1,667). A Deploy with realtime
       ticked after the gateway is live moves everyone to their shard.
+    - Production: 10 shards (owner, 2026-11-11, for 20,000 players at once), about 2,000
+      sockets each, committed before its first deploy. If that deploy takes ADR 0028's
+      fallback (the game shipped without its FANOUT binding), the same branch sets
+      `FANOUT_SHARDS` to 1 until the binding is back.
+    - **Production's players-at-once cap starts at the default 5,000** (500 a shard, which
+      already turns players away below 5,000). Before launch traffic, raise it in the admin
+      area (or its D1 row while the production admin is off) to about 21,500. Players reach
+      shards by account hash, so shards fill unevenly: about ±40 a shard, the fullest of ten
+      typically 70 over its 2,000 and up to about 130. The cap's share is ceil(cap/10), and
+      players are refused (4503) once the fullest shard is full: at 21,000 (2,100 a shard)
+      that happens about one time in ten with 20,000 playing, at 21,500 rarely; the idle-seat
+      rule (4408 after 10 minutes) softens it. The cap admits up to 10 shares in total.
+    - Not measured at that size: the one CanvasDO taking every move of 20,000 players (the
+      runs above reached 4,900), ten shards' ticks, and 20,000 sockets coming back after a
+      realtime deploy. A bot run on staging at 10,000 or more, from several machines (one
+      address opening thousands of sockets gets throttled at the edge), comes first.
   - Open-area growth checked on staging, 2026-11-02 02:22-02:36 UTC: the open area grew from
     512² at 256,256 to 768² at 128,128 when filled cells reached 70% (66.6% by the tiles at
     02:28, past 70% by 02:31). The manifest's `stats.filled` is the share of blocked cells
@@ -552,19 +571,30 @@ where we are.
 - [x] Content cleanup: no private design links or old PR links; account id as a secret.
 - [x] Owner: gitleaks over the full history (2026-11-09, 547 commits, default rules): no
   leaks. Workers Secrets stay as they are (ADR 0046).
-- [ ] Owner: a new `CLOUDFLARE_API_TOKEN` for the new repository and the archive's token
-  revoked (and `ANTHROPIC_API_KEY` the same way, if set).
-- [ ] Owner: squash `develop` into one signed-off commit; rename the GitHub repository to
-  `brickplace-archive` (private, archived, its Cloudflare secrets deleted, Actions off);
-  create the public `ndk98z/brickplace` and push the commit as `develop` and `main`. The
-  `deployed/<env>/<script>` tags stay in the archive, so the new repository's first deploy
-  ships every script (game and realtime too: CanvasDO replays its log and staging sockets
-  drop once). Harmless before season 1. Never push the archive's tags (they carry the old
-  history); to skip the redeploy, tag the squashed commit fresh as ADR 0046 says.
-- [ ] Owner, on the new repository: variables and secrets (docs/ops/setup.md, step 4,
-  `DEPLOY_ENABLED` last), environments with a required reviewer on `production`, rulesets,
-  private vulnerability reporting, secret scanning with push protection, Renovate, the
-  Claude GitHub App. CodeQL and Scorecard run on their own once it is public.
+- [x] Owner (2026-11-09): `develop` squashed into one signed-off commit; the old GitHub
+  repository renamed `brickplace-archive` (private, Actions off); the new `ndk98z/brickplace`
+  created and public, the commit pushed as `develop` and `main`. Game and realtime had not
+  changed since their last staging deploy, so `deployed/staging/{game,realtime}` were tagged
+  fresh on the squashed commit (never the archive's tags: they carry the old history).
+- [x] Owner, on the new repository (2026-11-09): variables, `CLOUDFLARE_ACCOUNT_ID` as a
+  secret, a new `CLOUDFLARE_API_TOKEN` in `staging`, environments (`production` with a
+  required reviewer), rulesets, labels, an allow-list of actions pinned by SHA, private
+  vulnerability reporting, secret scanning with push protection, Renovate, the Claude
+  GitHub App.
+- [x] Owner (2026-11-10): `DEPLOY_ENABLED=true`. The first deploy from the new repository
+  (dispatched on `develop`) skipped game and realtime, shipped gateway and admin, and masked
+  the account id in the log. Staging answers `/healthz`. The rulesets' required checks now
+  come from GitHub Actions. The first pushes had ended in `startup_failure` because of a
+  billing setting, since fixed.
+- [x] Owner (2026-11-10), on the archive: its `CLOUDFLARE_API_TOKEN` deleted and revoked in
+  Cloudflare; `brickplace-archive` archived (private, read-only).
+- [x] README links staging (<https://staging.brickplace.app>) for anyone who wants to try it.
+  Since 2026-11-11 it says staging is for invited testers (ADR 0045, amended).
+- [ ] Owner: OpenSSF Best Practices badge, project 16514
+  (<https://www.bestpractices.dev/projects/16514>). The form is filled in; the owner still has
+  to answer the two self-attestations (`know_secure_design`, `know_common_errors`) and
+  submit. The README already shows the badge (with the Scorecard badge), and it turns to
+  "passing" once the form is submitted.
 - [ ] Trademark search for "BrickPlace" (USPTO, WIPO, Vietnam); buy brickplace.io / .gg.
 - [ ] Legal: Decree 147/2024 (G1 licence) and EU DSA obligations for the operator.
 
@@ -634,7 +664,8 @@ both ways, the rest through reports, and "Today" / "This week" rankings after la
 0020); archive pseudonyms, `archive/` locked indefinitely, and a team kept beside them only
 with at least 10 players in the season's log (ADR 0021, built); moderators may pull the
 emergency switches (cooldown ×2, read-only on; only owners reopen) with the identity
-provider's MFA and an 8-hour Access session for every admin (owner config), and a new season's
+provider's MFA and an 8-hour Access session for every admin (owner config; 24 hours since
+2026-11-11, ADR 0022 amended), and a new season's
 canvas copies the config versions in force (ADR 0022); moderators may ban permanently, only
 owners lift, and "sign out everywhere" kicks open sockets (ADR 0023); moderators roll back one
 player and lock areas while a rollback of every player's ops needs an owner, restored cells
@@ -651,10 +682,21 @@ map, with no client back-off (ADR 0032, built).
 ## Blocked / needs the owner
 
 Step by step, with commands and where staging stands: [docs/ops/setup.md](docs/ops/setup.md).
-Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there: the
-`abuse-policy` and `trust-weights` KV keys, Google and Reddit sign-in, the admin area's first
-owner row, and alerts.
-Production: none of it yet. The list below is what each environment needs.
+Staging is up (first deploy 2026-10-25; every merge to `develop` deploys it, ADR 0036). Still open there:
+Reddit sign-in (on hold); alerts are for production only. **Staging behind Cloudflare Access
+for invited testers** (owner, 2026-11-11; ADR 0045, amended): the repo side is in (bots and
+the staging k6 scripts send a service token, the timelapse sends its cookie to `/api/seasons`,
+README); the owner's Access setup is docs/ops/setup.md, step 8.
+Production (2026-11-11): storage (R2 buckets with the archive lock, D1 databases and the KV
+namespace, in APAC like staging; ids in each `wrangler.jsonc`), the Workers' required secrets,
+and the gateway on `brickplace.app` with Discord and Google sign-in and Turnstile in its config;
+tiles on `tiles.brickplace.app` (custom domain, CORS for `https://brickplace.app` only, checked
+on a 404 since no manifest exists yet; the manifest Cache Rule already named it); the admin
+area on `admin.brickplace.app` behind its own Access application (24-hour session, the shared
+reusable policy "Internal System"). Not deployed yet; KV values deferred (owner). **Admin MFA
+is open, on staging too:** the policy has no MFA rule and login is Cloudflare's identity
+provider, account members only; the owner settles the MFA before `ADMIN_ENABLED` goes on in
+production (ADR 0022, amended 2026-11-11). The rest is in docs/ops/setup.md's table. The list below is what each environment needs.
 - **`brickplace.app` is a zone (owner, 2026-11-03).** Staging's tiles moved to
   `tiles-staging.brickplace.app` (ADR 0044, amended; custom domain, manifest Cache Rule for
   both tiles names, CORS for the workers.dev origin and `staging.brickplace.app`, cache
@@ -670,7 +712,17 @@ Production: none of it yet. The list below is what each environment needs.
   10 s; the number in `ops-private/`), checked: the requests past the limit got 429 on both
   paths and the API answered again 10 s later. With the workers.dev address off it cannot be
   skipped, and it will cover production's hostnames too. Production will use `brickplace.app`
-  and `tiles.brickplace.app`.
+  and `tiles.brickplace.app`. Until then the apex and `www` redirect to staging (owner,
+  2026-11-10): proxied placeholder `AAAA 100::` records and a Redirect Rule, 302 (never 301:
+  browsers keep a 301), path and query kept. Before production's first deploy, delete the
+  rule, or narrow it to `www` and point it at `https://brickplace.app`: Redirect Rules run
+  before Workers, so it would keep sending the apex to staging even with the custom domain
+  attached. Delete the apex placeholder record too (and `www`'s if the rule goes). The
+  deploy itself would not stop on it: wrangler run outside a terminal (CI) replaces a DNS
+  record already on a custom domain's name. Done 2026-11-11 (owner): both placeholder records
+  deleted and the rule disabled (not deleted: never re-enable it while it matches the apex),
+  so `www.brickplace.app` has no record for now; give it one and a redirect to the apex
+  before launch (the rule's host list and target both change).
 - Cloudflare account, then in GitHub repo settings:
   - repository **secret** `CLOUDFLARE_ACCOUNT_ID` and **variable** `DEPLOY_ENABLED=true`
     (ADR 0046; deploy jobs are skipped until the variable is set; job conditions cannot see
@@ -697,7 +749,7 @@ Production: none of it yet. The list below is what each environment needs.
     the accounts database's ids in its `ACCOUNTS` entries, for the season registry), a
     hostname as the admin script's custom domain (staging: `admin-staging.brickplace.app`
     since 2026-11-03, before that its workers.dev address, ADR 0029 amended), a self-hosted
-    Access application on it whose policy requires the identity provider's MFA, with an 8-hour session (its AUD tag and the team domain into `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`), then the
+    Access application on it whose policy requires the identity provider's MFA (not yet in place, see above), with a 24-hour session (ADR 0022 amended 2026-11-11; its AUD tag and the team domain into `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`), then the
     **environment variable** `ADMIN_ENABLED=true` on that GitHub environment, not the
     repository (until then the deploy workflow skips, in that environment only, the
     admin migrations and deploy), and the first owner row inserted with `wrangler d1 execute`.
@@ -745,8 +797,8 @@ Production: none of it yet. The list below is what each environment needs.
 - OAuth apps: Google Cloud Console, Reddit (reddit.com/prefs/apps), Discord Developer Portal,
   each with the redirect URI `${PUBLIC_ORIGIN}/auth/{google|reddit|discord}/callback`, with
   credentials per environment (`docs/ops/setup.md`, step 6). Staging: Discord and Google done;
-  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: none
-  yet.
+  Reddit on hold until a Reddit post has gauged interest (owner, 2026-10-26); production: Discord and
+  Google (2026-11-11; Google's consent screen still in Testing), Reddit on hold.
 - Operator variables on the GitHub repository (ADR 0037, `docs/ops/setup.md` step 4.6):
   `VITE_OPERATOR_NAME`, `VITE_OPERATOR_ADDRESS`, `VITE_CONTACT_EMAIL` (deploys fail without
   them), `VITE_KOFI_URL` (Donate stays off without it).

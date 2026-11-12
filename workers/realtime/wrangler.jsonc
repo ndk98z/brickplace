@@ -53,7 +53,7 @@
           }
         ]
       },
-      "kv_namespaces": [{ "binding": "MODERATION", "id": "00000000000000000000000000000000" }]
+      "kv_namespaces": [{ "binding": "MODERATION", "id": "8b1f9ceaf7744c03a9c5a484aa7af353" }]
     }
   }
 }

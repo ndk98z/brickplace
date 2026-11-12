@@ -57,8 +57,8 @@
   "env": {
     // Bindings and vars do not inherit into environments, so each one repeats them. The Access
     // team domain (https://<team>.cloudflareaccess.com) and the application's AUD tag stay
-    // empty until the owner creates the Access application: the admin area is closed (503)
-    // until both are set.
+    // empty until the owner creates that environment's Access application: the admin area is
+    // closed (503) until both are set.
     "staging": {
       // ADR 0029, amended 2026-11-03: on its custom domain behind a self-hosted Access
       // application for that hostname (whose AUD tag is below), like production (ADR 0022). No
@@ -99,10 +99,16 @@
       "r2_buckets": [{ "binding": "SPONSOR_LOGOS", "bucket_name": "brickplace-sponsors-staging" }]
     },
     "production": {
+      // ADR 0022: on its custom domain behind its own self-hosted Access application (AUD tag
+      // below; same team and admins policy as staging's). No workers.dev address and no preview
+      // URLs, written out as on staging.
+      "routes": [{ "pattern": "admin.brickplace.app", "custom_domain": true }],
+      "workers_dev": false,
+      "preview_urls": false,
       "vars": {
         "ENVIRONMENT": "production",
-        "ACCESS_TEAM_DOMAIN": "",
-        "ACCESS_AUD": ""
+        "ACCESS_TEAM_DOMAIN": "https://brickplace.cloudflareaccess.com",
+        "ACCESS_AUD": "f3e166397b1f1794741cc339e840ad118126e8ff25fdf41ce7050b74b7b1682b"
       },
       "durable_objects": {
         "bindings": [
@@ -122,13 +128,13 @@
         {
           "binding": "ADMIN_DB",
           "database_name": "brickplace-admin-production",
-          "database_id": "00000000-0000-0000-0000-000000000002",
+          "database_id": "e2e6d9ec-4c31-4eb9-ad1e-8bcdf9b78d53",
           "migrations_dir": "migrations"
         },
         {
           "binding": "ACCOUNTS",
           "database_name": "brickplace-accounts-production",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "1a10b2a7-9f32-4ccb-ac15-0e35a9b5d74b",
           "migrations_dir": "../gateway/migrations"
         }
       ],

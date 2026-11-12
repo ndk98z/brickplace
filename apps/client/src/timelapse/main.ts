@@ -106,7 +106,9 @@ function setSlider(i: number, frames: number): void {
 
 async function seasons(): Promise<SeasonList | null> {
   try {
-    const response = await fetch('/api/seasons', { credentials: 'omit' });
+    // Same-origin cookies: the answer is public and the same for everyone, but on staging
+    // Cloudflare Access lets a request through only with its own cookie (ADR 0045, amended).
+    const response = await fetch('/api/seasons', { credentials: 'same-origin' });
     return response.ok ? ((await response.json()) as SeasonList) : null;
   } catch {
     return null;

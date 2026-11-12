@@ -4,7 +4,7 @@
 
 Please report privately, never in a public issue, discussion or PR:
 - GitHub: **Security → Report a vulnerability** on this repository (private vulnerability
-  reporting). **[TODO before the repository goes public: enable it.]**
+  reporting).
 - Email: [ndk98z.tech@gmail.com](mailto:ndk98z.tech@gmail.com), with "security" in the subject.
 
 Include what you found, how to reproduce it, and the impact. We aim to acknowledge within

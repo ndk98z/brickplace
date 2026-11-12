@@ -21,6 +21,9 @@
 //              whole run, playing every brick its hold gets: up to 3 at once, then about one a
 //              minute, so give a staging run more senders (100-200)
 //   BOT_KEY    staging's bot key (docs/ops/setup.md, step 8); wss:// only
+//   CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET
+//              staging's Cloudflare Access service token (ADR 0045, amended), sent on every
+//              socket; both or neither, wss:// only
 //   BOT_FIRST  first bot number for the senders (default 900000, clear of tools/bots' 1...)
 //   DURATION   seconds (default 40; at most SLOTS * SLOT_MS)
 //   VIEWS      1 (default): watchers send their view when the server takes views; 0: they
@@ -43,6 +46,23 @@ const SLOT_MS = Number(__ENV.SLOT_MS ?? 20);
 const BOT_KEY = __ENV.BOT_KEY || '';
 const BOT_FIRST = Number(__ENV.BOT_FIRST ?? 900000);
 if (BOT_KEY && !WS_URL.startsWith('wss://')) throw new Error('the bot key goes over wss:// only');
+const ACCESS = accessHeaders();
+/** Socket params: the Access token, if any, plus `extra` headers. */
+function params(extra) {
+  return { headers: Object.assign({}, ACCESS, extra) };
+}
+
+/** Staging's Access service token as headers (none without the variables). */
+function accessHeaders() {
+  const id = (__ENV.CF_ACCESS_CLIENT_ID || '').trim();
+  const secret = (__ENV.CF_ACCESS_CLIENT_SECRET || '').trim();
+  if (!id && !secret) return {};
+  if (!id || !secret) {
+    throw new Error('set both CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET, or neither');
+  }
+  if (!WS_URL.startsWith('wss://')) throw new Error('the Access token goes over wss:// only');
+  return { 'CF-Access-Client-Id': id, 'CF-Access-Client-Secret': secret };
+}
 if (BOT_KEY && (BOT_FIRST < 0 || BOT_FIRST + SENDERS - 1 > 999999)) {
   throw new Error('bot numbers stop at 999999: lower BOT_FIRST or SENDERS');
 }
@@ -175,7 +195,7 @@ export function watcher(data) {
   const near = __VU % 2 === 1;
   const id = `lt-w${__VU}-${data.start.toString(36)}`;
   const endAt = data.start + DURATION;
-  ws.connect(`${WS_URL}?client=${id}`, null, (socket) => {
+  ws.connect(`${WS_URL}?client=${id}`, params({}), (socket) => {
     let ready = false;
     /** True once this watcher sent a view (the server takes them, and VIEWS=1). */
     let viewing = false;
@@ -298,58 +318,61 @@ function botSender(data) {
   const number = BOT_FIRST + exec.scenario.iterationInTest;
   const endAt = data.start + DURATION;
   const id = `lt-b${number}-${data.start.toString(36)}`;
-  const params = { headers: { Authorization: `Bearer ${BOT_KEY}` } };
-  ws.connect(`${WS_URL}?client=${id}&bot=${number}`, params, (socket) => {
-    let viewSent = false;
-    /** A brick the latest hold shows (-1: none), and that hold's revision. */
-    let shape = -1;
-    let revision = -1;
-    /** The revision the op in flight was chosen from: the next needs a newer hold. */
-    let usedRevision = -1;
-    let pending = false;
-    let opId = 0;
-    let refusals = 0;
-    const play = () => {
-      if (pending || !viewSent || shape < 0 || revision <= usedRevision) return;
-      if (Date.now() >= endAt) return;
-      const cell = slotCell(data);
-      if (!cell) return;
-      pending = true;
-      usedRevision = revision;
-      opId += 1;
-      socket.sendBinary(brickFrame(opId, cell.x, cell.y, shape));
-    };
-    socket.on('binaryMessage', (message) => {
-      const view = new DataView(message);
-      if (view.byteLength < 2) return;
-      const opcode = view.getUint8(1);
-      if (opcode === CONFIG && !viewSent) {
-        socket.sendBinary(viewFrame(NEAR));
-        viewSent = true;
-        play();
-      } else if (opcode === HOLD && view.byteLength >= 16) {
-        const next = view.getUint32(12, true);
-        if (next < revision) return;
-        revision = next;
-        shape = brickIn(view);
-        play();
-      } else if (opcode === ACK && pending && view.byteLength >= 7) {
-        if (view.getUint32(2, true) !== opId) return;
-        pending = false;
-        if (view.getUint8(6) === 0) {
-          placed.add(1);
-          refusals = 0;
-          // The hold that follows a placed brick may be in already.
+  ws.connect(
+    `${WS_URL}?client=${id}&bot=${number}`,
+    params({ Authorization: `Bearer ${BOT_KEY}` }),
+    (socket) => {
+      let viewSent = false;
+      /** A brick the latest hold shows (-1: none), and that hold's revision. */
+      let shape = -1;
+      let revision = -1;
+      /** The revision the op in flight was chosen from: the next needs a newer hold. */
+      let usedRevision = -1;
+      let pending = false;
+      let opId = 0;
+      let refusals = 0;
+      const play = () => {
+        if (pending || !viewSent || shape < 0 || revision <= usedRevision) return;
+        if (Date.now() >= endAt) return;
+        const cell = slotCell(data);
+        if (!cell) return;
+        pending = true;
+        usedRevision = revision;
+        opId += 1;
+        socket.sendBinary(brickFrame(opId, cell.x, cell.y, shape));
+      };
+      socket.on('binaryMessage', (message) => {
+        const view = new DataView(message);
+        if (view.byteLength < 2) return;
+        const opcode = view.getUint8(1);
+        if (opcode === CONFIG && !viewSent) {
+          socket.sendBinary(viewFrame(NEAR));
+          viewSent = true;
           play();
-        } else {
-          refused.add(1);
-          // The brick is still held: try it again in a later slot, later still while
-          // refusals keep coming.
-          usedRevision = -1;
-          socket.setTimeout(play, Math.min(2000, SLOT_MS * 2 ** refusals++));
+        } else if (opcode === HOLD && view.byteLength >= 16) {
+          const next = view.getUint32(12, true);
+          if (next < revision) return;
+          revision = next;
+          shape = brickIn(view);
+          play();
+        } else if (opcode === ACK && pending && view.byteLength >= 7) {
+          if (view.getUint32(2, true) !== opId) return;
+          pending = false;
+          if (view.getUint8(6) === 0) {
+            placed.add(1);
+            refusals = 0;
+            // The hold that follows a placed brick may be in already.
+            play();
+          } else {
+            refused.add(1);
+            // The brick is still held: try it again in a later slot, later still while
+            // refusals keep coming.
+            usedRevision = -1;
+            socket.setTimeout(play, Math.min(2000, SLOT_MS * 2 ** refusals++));
+          }
         }
-      }
-    });
-    socket.setTimeout(() => socket.close(), Math.max(0, endAt - Date.now()));
-  });
+      });
+      socket.setTimeout(() => socket.close(), Math.max(0, endAt - Date.now()));
+    },
+  );
 }

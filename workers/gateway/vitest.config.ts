@@ -59,7 +59,12 @@ const standingsMigrations = await readD1Migrations('../game/migrations');
 
 export default defineConfig({
   // Test files took up to 3.6 s on a 2-CPU runner (under 1 s alone), close to the 5 s default.
-  test: { setupFiles: ['./test/setup.ts'], testTimeout: 15_000 },
+  test: {
+    setupFiles: ['./test/setup.ts'],
+    testTimeout: 15_000,
+    // A module cache per package (see packages/core/vitest.config.ts).
+    fsModuleCachePath: 'node_modules/.vitest-cache',
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath },
