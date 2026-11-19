@@ -1,6 +1,6 @@
 {
   "name": "brickplace",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A long-running collaborative map game: place bricks, hammer cells, stack shields.",
   "license": "AGPL-3.0-or-later",
