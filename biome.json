@@ -13,7 +13,7 @@
       "!**/.turbo",
       "!**/.wrangler",
       "!pnpm-lock.yaml",
-      "!CODE_OF_CONDUCT.md",
+      "!**/*.md",
       "!LICENSE"
     ]
   },
